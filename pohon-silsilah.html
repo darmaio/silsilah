@@ -94,7 +94,7 @@
         const URL_API = "https://script.google.com/macros/s/AKfycbzVJ_eQoLJQJ3gzCSCm0xwiebuqsSJwgnSHZ-yIyJuBLXGTJ90xkfMuuqbJyDzocDCpQA/exec";
 
         const kalimatLucu = [
-            "Sabar, lagi nyari foto Mbah Muntari yang paling ganteng...",
+            "Sabar, lagi nyari foto {nama} yang paling ganteng...",
             "Sedang menghubungkan tali silaturahmi yang sempat putus...",
             "Bentar, lagi nanya ke sesepuh siapa saja cucu-cucunya...",
             "Lagi nyusun silsilah, jangan sampai ada yang ketuker ya!",
@@ -105,10 +105,23 @@
         // FUNGSI UNTUK MENAMPILKAN KALIMAT ACAK
         function tampilkanKalimatAcak() {
             const el = document.getElementById('loadingText');
-            if (el) {
-                const indexAcak = Math.floor(Math.random() * kalimatLucu.length);
-                el.innerText = kalimatLucu[indexAcak];
+            if (!el) return;
+
+            // 1. Ambil data dari localStorage
+            const daftar = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
+            
+            // 2. Pilih satu nama acak (jika data kosong, pakai 'Mbah Muntari' sebagai cadangan)
+            let namaAcak = "Mbah Muntari";
+            if (daftar.length > 0) {
+                const orangAcak = daftar[Math.floor(Math.random() * daftar.length)];
+                namaAcak = orangAcak.nama;
             }
+
+            // 3. Pilih satu templat kalimat acak
+            const templat = templatKalimat[Math.floor(Math.random() * templatKalimat.length)];
+
+            // 4. Masukkan nama ke dalam templat
+            el.innerText = templat.replace("{nama}", namaAcak);
         }
 
         // JALANKAN PERTAMA KALI (INSTAN)
