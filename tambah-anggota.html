@@ -384,16 +384,21 @@
             return teks.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
         }
 
-        // Terapkan ke input Nama dan Alamat
-        const inputNama = document.getElementById('nama');
-        const inputAlamat = document.getElementById('domisili'); // Sesuaikan ID-nya
+        // Ganti bagian ini ya Om, perhatikan ID 'namaLengkap'
+        const inputNama = document.getElementById('namaLengkap'); // Tadi Om tulis 'nama'
+        const inputAlamat = document.getElementById('domisili');
 
         [inputNama, inputAlamat].forEach(input => {
             if (input) {
                 input.addEventListener('input', function() {
+                    // Simpan posisi kursor agar tidak loncat
                     const start = this.selectionStart;
-                    this.value = buatKapital(this.value);
-                    this.setSelectionRange(start, start); // Biar kursor nggak loncat
+                    
+                    // Ubah teks jadi Kapital di Awal Kata
+                    this.value = this.value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                    
+                    // Kembalikan posisi kursor
+                    this.setSelectionRange(start, start);
                 });
             }
         });
