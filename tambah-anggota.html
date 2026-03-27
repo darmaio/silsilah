@@ -379,9 +379,23 @@
             }
         });
 
-        // Fungsi sakti untuk membuat huruf kapital di setiap awal kata
         function buatKapital(teks) {
-            return teks.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+            // 1. Standar dulu: kapital awal kata (misal: "rt. 02" -> "Rt. 02")
+            let hasil = teks.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+
+            // 2. Daftar kata yang WAJIB huruf besar semua (Singkatan & Romawi)
+            const singkatanWajib = ["Rt", "Rw", "Diy", "Ii", "Iii", "Iv", "Vi", "Vii", "Viii", "Ix", "Xi", "Xii"];
+            
+            // 3. Kita sapu bersih kata yang salah tadi
+            singkatanWajib.forEach(kata => {
+                // \b artinya batas kata, supaya kalau ada nama "Arti" tidak berubah jadi "ARTi"
+                const regex = new RegExp("\\b" + kata + "\\b", "gi");
+                
+                // Kita paksa jadi huruf besar semua (RT, RW, DIY, II, dst)
+                hasil = hasil.replace(regex, kata.toUpperCase());
+            });
+
+            return hasil;
         }
 
         // Ganti bagian ini ya Om, perhatikan ID 'namaLengkap'
