@@ -111,33 +111,17 @@
     </div>
     
     <script>
-        // 1. Definisikan URL API Om di sini
         const URL_API = "https://script.google.com/macros/s/AKfycbzVJ_eQoLJQJ3gzCSCm0xwiebuqsSJwgnSHZ-yIyJuBLXGTJ90xkfMuuqbJyDzocDCpQA/exec"; 
-
-        // Di halaman beranda (index.html)
-        function tampilkanStatistik() {
-            // 1. Ambil data lama dari localStorage (Instan!)
-            const dataLokal = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
-            if (dataLokal.length > 0) {
-                document.getElementById('jumlahGenerasi').innerText = hitungGenerasi(dataLokal);
-            }
-
-            // 2. Baru kemudian panggil data terbaru dari Cloud
-            loadDataDariCloud(); 
-        }
 
         async function perbaruiDashboard() {
             const elJumlah = document.getElementById('angkaJumlah');
             const elGen = document.getElementById('angkaTotalGenerasi');
 
-            // --- TAHAP 1: AMBIL DARI LOCALSTORAGE (INSTAN/TANPA LOADING) ---
+            // --- TAHAP 1: AMBIL DARI LOCALSTORAGE (INSTAN) ---
             const daftarLokal = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
             
             if (daftarLokal.length > 0) {
-                // Tampilkan jumlah anggota langsung
                 if (elJumlah) elJumlah.innerText = daftarLokal.length;
-                
-                // HITUNG & TAMPILKAN GENERASI LANGSUNG (DARI DATA LOKAL)
                 updateAngkaGenerasi(daftarLokal, elGen);
             }
 
@@ -146,10 +130,8 @@
                 const response = await fetch(URL_API);
                 const daftarCloud = await response.json();
                 
-                // Simpan data terbaru ke LocalStorage
                 localStorage.setItem('daftarKeluarga', JSON.stringify(daftarCloud));
                 
-                // Update tampilan dengan data terbaru dari Cloud
                 if (elJumlah) elJumlah.innerText = daftarCloud.length;
                 updateAngkaGenerasi(daftarCloud, elGen);
 
@@ -158,7 +140,6 @@
             }
         }
 
-        // Fungsi pembantu agar kode tidak dobel (Dry Principle)
         function updateAngkaGenerasi(data, elemen) {
             if (!elemen) return;
             
@@ -179,31 +160,8 @@
             elemen.innerText = setGenerasi.size;
         }
 
-        // Fungsi pembantu agar kode tidak dobel (Dry Principle)
-        function updateAngkaGenerasi(data, elemen) {
-            if (!elemen) return;
-            
-            let setGenerasi = new Set();
-            data.forEach(a => {
-                if (a.tanggalLahir) {
-                    const match = a.tanggalLahir.match(/\d{4}/);
-                    if (match) {
-                        const tahun = parseInt(match[0]);
-                        if (tahun >= 2013) setGenerasi.add("Alpha");
-                        else if (tahun >= 1997) setGenerasi.add("Z");
-                        else if (tahun >= 1981) setGenerasi.add("Milenial");
-                        else if (tahun >= 1965) setGenerasi.add("X");
-                        else if (tahun >= 1946) setGenerasi.add("Boomers");
-                    }
-                }
-            });
-            elemen.innerText = setGenerasi.size;
-        }
-
-        // Jalankan fungsi saat halaman dimuat
         window.onload = perbaruiDashboard;
 
-        // Registrasi Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
