@@ -127,45 +127,77 @@
         }
 
         async function perbaruiDashboard() {
-            // --- Bagian 1: Ambil dari LocalStorage (Cepat/Instan) ---
-            const daftarLokal = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
             const elJumlah = document.getElementById('angkaJumlah');
-            if(elJumlah) elJumlah.innerText = daftarLokal.length;
+            const elGen = document.getElementById('angkaTotalGenerasi');
 
-            // --- Bagian 2: Ambil dari Cloud (Untuk Statistik & Update Terbaru) ---
+            // --- TAHAP 1: AMBIL DARI LOCALSTORAGE (INSTAN/TANPA LOADING) ---
+            const daftarLokal = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
+            
+            if (daftarLokal.length > 0) {
+                // Tampilkan jumlah anggota langsung
+                if (elJumlah) elJumlah.innerText = daftarLokal.length;
+                
+                // HITUNG & TAMPILKAN GENERASI LANGSUNG (DARI DATA LOKAL)
+                updateAngkaGenerasi(daftarLokal, elGen);
+            }
+
+            // --- TAHAP 2: UPDATE DARI CLOUD (DI BALIK LAYAR) ---
             try {
                 const response = await fetch(URL_API);
                 const daftarCloud = await response.json();
                 
-                // Update LocalStorage agar data terbaru tersimpan
+                // Simpan data terbaru ke LocalStorage
                 localStorage.setItem('daftarKeluarga', JSON.stringify(daftarCloud));
                 
-                // Update Jumlah Anggota (Versi Cloud terbaru)
-                if(elJumlah) elJumlah.innerText = daftarCloud.length;
-
-                // Hitung Rentang Generasi
-                let setGenerasi = new Set();
-                daftarCloud.forEach(a => {
-                    if (a.tanggalLahir) {
-                        const match = a.tanggalLahir.match(/\d{4}/);
-                        if (match) {
-                            const tahun = parseInt(match[0]);
-                            if (tahun >= 2013) setGenerasi.add("Alpha");
-                            else if (tahun >= 1997) setGenerasi.add("Z");
-                            else if (tahun >= 1981) setGenerasi.add("Milenial");
-                            else if (tahun >= 1965) setGenerasi.add("X");
-                            else if (tahun >= 1946) setGenerasi.add("Boomers");
-                        }
-                    }
-                });
-
-                // Update angka di menu Jumlah Generasi
-                const elGen = document.getElementById('angkaTotalGenerasi');
-                if(elGen) elGen.innerText = setGenerasi.size;
+                // Update tampilan dengan data terbaru dari Cloud
+                if (elJumlah) elJumlah.innerText = daftarCloud.length;
+                updateAngkaGenerasi(daftarCloud, elGen);
 
             } catch (err) {
                 console.log("Gagal sinkronisasi cloud, menggunakan data lokal.", err);
             }
+        }
+
+        // Fungsi pembantu agar kode tidak dobel (Dry Principle)
+        function updateAngkaGenerasi(data, elemen) {
+            if (!elemen) return;
+            
+            let setGenerasi = new Set();
+            data.forEach(a => {
+                if (a.tanggalLahir) {
+                    const match = a.tanggalLahir.match(/\d{4}/);
+                    if (match) {
+                        const tahun = parseInt(match[0]);
+                        if (tahun >= 2013) setGenerasi.add("Alpha");
+                        else if (tahun >= 1997) setGenerasi.add("Z");
+                        else if (tahun >= 1981) setGenerasi.add("Milenial");
+                        else if (tahun >= 1965) setGenerasi.add("X");
+                        else if (tahun >= 1946) setGenerasi.add("Boomers");
+                    }
+                }
+            });
+            elemen.innerText = setGenerasi.size;
+        }
+
+        // Fungsi pembantu agar kode tidak dobel (Dry Principle)
+        function updateAngkaGenerasi(data, elemen) {
+            if (!elemen) return;
+            
+            let setGenerasi = new Set();
+            data.forEach(a => {
+                if (a.tanggalLahir) {
+                    const match = a.tanggalLahir.match(/\d{4}/);
+                    if (match) {
+                        const tahun = parseInt(match[0]);
+                        if (tahun >= 2013) setGenerasi.add("Alpha");
+                        else if (tahun >= 1997) setGenerasi.add("Z");
+                        else if (tahun >= 1981) setGenerasi.add("Milenial");
+                        else if (tahun >= 1965) setGenerasi.add("X");
+                        else if (tahun >= 1946) setGenerasi.add("Boomers");
+                    }
+                }
+            });
+            elemen.innerText = setGenerasi.size;
         }
 
         // Jalankan fungsi saat halaman dimuat
