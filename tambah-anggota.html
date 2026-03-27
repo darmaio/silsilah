@@ -378,6 +378,26 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        // Fungsi sakti untuk membuat huruf kapital di setiap awal kata
+        function buatKapital(teks) {
+            return teks.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        // Terapkan ke input Nama dan Alamat
+        const inputNama = document.getElementById('nama');
+        const inputAlamat = document.getElementById('domisili'); // Sesuaikan ID-nya
+
+        [inputNama, inputAlamat].forEach(input => {
+            if (input) {
+                input.addEventListener('input', function() {
+                    const start = this.selectionStart;
+                    this.value = buatKapital(this.value);
+                    this.setSelectionRange(start, start); // Biar kursor nggak loncat
+                });
+            }
+        });
+
     </script>
 </body>
 </html>
