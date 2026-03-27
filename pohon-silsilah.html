@@ -72,6 +72,15 @@
 </head>
 
 <body class="bg-gray-50 overflow-hidden"> 
+    <div id="loadingOverlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 border-4 border-[#00e5ff] border-t-transparent rounded-full animate-spin mb-6"></div>
+        
+        <p id="loadingText" class="text-lg font-bold text-gray-700 animate-pulse">
+            Sedang menjemput data keluarga...
+        </p>
+        <p class="text-sm text-gray-400 mt-2">Mohon sabar, ini ujian kesabaran silsilah.</p>
+    </div>
+
     <div class="header-curve">
         <button onclick="window.location.href='index.html'" class="btn-back">←</button>
         <h1 class="text-xl font-bold">Eksplorasi Silsilah</h1>
@@ -84,6 +93,36 @@
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycbzVJ_eQoLJQJ3gzCSCm0xwiebuqsSJwgnSHZ-yIyJuBLXGTJ90xkfMuuqbJyDzocDCpQA/exec";
+
+        const kalimatLucu = [
+            "Sabar, lagi nyari foto Mbah Muntari yang paling ganteng...",
+            "Sedang menghubungkan tali silaturahmi yang sempat putus...",
+            "Bentar, lagi nanya ke sesepuh siapa saja cucu-cucunya...",
+            "Lagi nyusun silsilah, jangan sampai ada yang ketuker ya!",
+            "Data sedang dijalan, semoga nggak kena macet di pertigaan...",
+            "Mempersiapkan pohon, pastikan akarnya kuat seperti cinta keluarga."
+        ];
+
+        let indexKalimat = 0;
+        const intervalKalimat = setInterval(() => {
+            const el = document.getElementById('loadingText');
+            if (el) {
+                indexKalimat = (indexKalimat + 1) % kalimatLucu.length;
+                el.innerText = kalimatLucu[indexKalimat];
+            }
+        }, 1500); // Ganti kalimat setiap 1.5 detik
+
+        // FUNGSI UNTUK MENGHILANGKAN LOADING
+        function sembunyikanLoading() {
+            clearInterval(intervalKalimat);
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                // Tambahkan efek transisi biar halus
+                overlay.style.transition = "opacity 0.5s";
+                overlay.style.opacity = "0";
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }        
 
         async function loadDataDariCloud() {
             try {
@@ -127,6 +166,9 @@
             let htmlUtama = "";
             akarKeluarga.forEach(kepala => htmlUtama += buildNode(kepala, daftar));
             wrapper.innerHTML = htmlUtama;
+            
+            // --- PANGGIL INI AGAR LOADING HILANG ---
+                sembunyikanLoading();
         }
 
         function buildNode(orang, semuaData) {
