@@ -130,14 +130,20 @@
         }
 
         function buildNode(orang, semuaData) {
-            // 1. Cari data Pasangan berdasarkan idPasangan
-            const pasangan = semuaData.find(a => a.id === orang.idPasangan);
+            // CARI PASANGAN: Cek apakah saya punya idPasangan, 
+            // ATAU apakah ada orang lain yang idPasangan-nya adalah ID saya.
+            const pasangan = semuaData.find(a => 
+                (orang.idPasangan && a.id === orang.idPasangan) || 
+                (a.idPasangan === orang.id)
+            );
+
+            // Cari anak: Anak dari saya ATAU anak dari pasangan saya
             const anakAnak = semuaData.filter(a => {
                 const isAnakKandung = a.parentID == orang.id;
                 const isAnakPasangan = pasangan ? (a.parentID == pasangan.id) : false;
-                
                 return (isAnakKandung || isAnakPasangan) && a.status === 'anak';
             });
+            
             const punyaKeturunan = anakAnak.length > 0;
 
             // --- LOGIKA TAMPILAN FOTO (UTAMA) ---
