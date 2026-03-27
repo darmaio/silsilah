@@ -93,34 +93,30 @@
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycbzVJ_eQoLJQJ3gzCSCm0xwiebuqsSJwgnSHZ-yIyJuBLXGTJ90xkfMuuqbJyDzocDCpQA/exec";
 
-        const kalimatLucu = [
+        const kalimatLucu = [ // Pastikan namanya konsisten
             "Sabar, lagi nyari foto {nama} yang paling ganteng...",
-            "Sedang menghubungkan tali silaturahmi yang sempat putus...",
-            "Bentar, lagi nanya ke sesepuh siapa saja cucu-cucunya...",
-            "Lagi nyusun silsilah, jangan sampai ada yang ketuker ya!",
-            "Data sedang dijalan, semoga nggak kena macet di pertigaan...",
-            "Mempersiapkan pohon, pastikan akarnya kuat seperti cinta keluarga."
+            "Sedang menghubungkan tali silaturahmi {nama}...",
+            "Bentar, lagi nanya ke {nama} siapa saja cucu-cucunya...",
+            "Lagi nyusun silsilah {nama}, jangan sampai ada yang ketuker ya!",
+            "Data {nama} sedang dijalan, semoga nggak kena macet...",
+            "Mempersiapkan pohon, pastikan akar keluarga {nama} tetap kuat."
         ];
 
-        // FUNGSI UNTUK MENAMPILKAN KALIMAT ACAK
         function tampilkanKalimatAcak() {
             const el = document.getElementById('loadingText');
             if (!el) return;
 
-            // 1. Ambil data dari localStorage
             const daftar = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
             
-            // 2. Pilih satu nama acak (jika data kosong, pakai 'Mbah Muntari' sebagai cadangan)
             let namaAcak = "Mbah Muntari";
             if (daftar.length > 0) {
                 const orangAcak = daftar[Math.floor(Math.random() * daftar.length)];
                 namaAcak = orangAcak.nama;
             }
 
-            // 3. Pilih satu templat kalimat acak
+            // PERBAIKAN: Gunakan 'kalimatLucu', bukan 'templatKalimat'
             const templat = kalimatLucu[Math.floor(Math.random() * kalimatLucu.length)];
 
-            // 4. Masukkan nama ke dalam templat
             el.innerText = templat.replace("{nama}", namaAcak);
         }
 
