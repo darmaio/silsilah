@@ -59,6 +59,18 @@
             transform: translateZ(0);
             -webkit-transform: translateZ(0);
             will-change: transform;
+            
+            /* Tambahan: Agar gambar di dalam slide tidak pecah/blur saat animasi */
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-perspective: 1000;
+            perspective: 1000;
+        }
+
+        /* Pastikan gambar di dalam slide mengikuti lekukan kartu */
+        .swiper-slide img {
+            display: block;
+            width: 100%;
         }
         
         .menu-card:active { transform: scale(0.95); }
@@ -260,36 +272,38 @@
 
         // Inisialisasi Swiper Slider
         var swiper = new Swiper(".mySwiper", {
-            // 1. PENGATURAN DASAR
-            slidesPerView: 1,      // Tampilkan 1 kartu per layar
-            spaceBetween: 10,     // Jarak antar kartu (pixel)
-            loop: true,           // Iklan berputar terus (kembali ke 1 setelah slide terakhir)
-            grabCursor: true,     // Kursor berubah jadi tangan saat hover (di desktop)
-            speed: 800,              // Durasi transisi (ms), lebih besar = lebih lambat/halus
-            touchRatio: 1,           // Rasio pergerakan jari vs slide
-            touchAngle: 45,          // Mencegah slide geser kalau user mau scroll atas-bawah
-            resistanceRatio: 0.5,    // Efek membal saat sudah di ujung slide
-            longSwipesRatio: 0.5,    // HARUS geser minimal 50% lebar kartu baru ganti gambar
-            followFinger: true,      // Slide tetap nempel di jari saat digeser
-            shortSwipes: false,      // Matikan geseran pendek (sentakan kecil) yang bikin loncat
+            slidesPerView: 1,
+            spaceBetween: 10,
+            loop: true,
+            speed: 600, // Kecepatan transisi saat pindah kartu (jangan terlalu lambat agar tidak 'lengket')
 
-            // 2. OTOMATIS GESER (Autoplay)
+            // --- PENGATURAN AGAR GESERAN LEMBUT & TIDAK MEMBAL ---
+            followFinger: true,       // Kartu WAJIB nempel terus di jari saat digeser
+            threshold: 5,             // Sensitivitas awal (pixel). Kalau kegeser 5px baru dianggap gerak
+            touchMoveStopPropagation: true,
+
+            // KUNCI UTAMA: Mengatur ambang batas geser
+            longSwipes: true,         // Izinkan geseran panjang
+            longSwipesRatio: 0.3,     // Cukup geser 30% saja, dia sudah mau pindah ke kartu berikutnya (tidak membal)
+            longSwipesMs: 100,        // Jika ditahan lebih dari 100ms, dia masuk mode geser halus
+
+            // Mematikan magnet 'sentakan' yang bikin loncat/balik lagi
+            shortSwipes: true,        // Tetap aktifkan, tapi kita atur kecepatannya
+            
+            // Efek Transisi (PENTING)
+            touchReleaseOnEdges: true, 
+            resistance: true,
+            resistanceRatio: 0,       // Hilangkan efek 'karet' di ujung agar tidak mantul keras
+            
+            // --- AUTOPLAY TETAP JALAN ---
             autoplay: {
-                delay: 5000,                  // Geser tiap 5 detik (5000ms)
-                disableOnInteraction: false,   // JANGAN matikan autoplay jika user swipe manual
-                pauseOnMouseEnter: true,      // Berhenti geser jika kursor mouse di atas iklan
+                delay: 5000,
+                disableOnInteraction: false,
             },
-
-            // 3. DOT NAVIGASI (Hanya jika Om pakai dot di HTML)
             pagination: {
                 el: ".swiper-pagination",
-                clickable: true, // Dot bisa diklik untuk lompat ke iklan tertentu
-                dynamicBullets: true, // Dot mengecil/membesar mengikuti jumlah slide
+                clickable: true,
             },
-
-            // 4. EFEK GESER (Opsional, bawaan adalah slide)
-            effect: "slide", // Bisa diganti "fade" atau "cube"
-            speed: 600,      // Kecepatan animasi pergeseran (ms)
         });
     </script>
 
