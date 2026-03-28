@@ -53,6 +53,13 @@
         .swiper {
             margin-bottom: 30px;
         }
+
+        .swiper-slide {
+            /* Memaksa GPU HP ikut kerja biar geseran super smooth */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            will-change: transform;
+        }
         
         .menu-card:active { transform: scale(0.95); }
         .menu-icon { font-size: 24px; margin-bottom: 8px; color: #00b8d4; }
@@ -258,6 +265,18 @@
             spaceBetween: 10,     // Jarak antar kartu (pixel)
             loop: true,           // Iklan berputar terus (kembali ke 1 setelah slide terakhir)
             grabCursor: true,     // Kursor berubah jadi tangan saat hover (di desktop)
+            speed: 800,              // Durasi transisi (ms), lebih besar = lebih lambat/halus
+            touchRatio: 1,           // Rasio pergerakan jari vs slide
+            touchAngle: 45,          // Mencegah slide geser kalau user mau scroll atas-bawah
+            resistanceRatio: 0.5,    // Efek membal saat sudah di ujung slide
+            longSwipesRatio: 0.5,    // HARUS geser minimal 50% lebar kartu baru ganti gambar
+            followFinger: true,      // Slide tetap nempel di jari saat digeser
+            shortSwipes: false,      // Matikan geseran pendek (sentakan kecil) yang bikin loncat
+            
+            // Opsional: Biar geserannya punya bobot (momentum)
+            freeMode: {
+            enabled: false,        // Tetap snap ke kartu, tapi lebih berbobot
+            },
 
             // 2. OTOMATIS GESER (Autoplay)
             autoplay: {
