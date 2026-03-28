@@ -106,7 +106,7 @@
     </div>
 
     <script>
-        const URL_API = "https://script.google.com/macros/s/AKfycbzVJ_eQoLJQJ3gzCSCm0xwiebuqsSJwgnSHZ-yIyJuBLXGTJ90xkfMuuqbJyDzocDCpQA/exec";
+        const URL_API = "https://script.google.com/macros/s/AKfycbzOqtKtf8ZfY6ZcLKtFMws1JXpBGHmzXHN6UTa1CoefF0umjXuQ1ZLaYnBMar6X6RWI3w/exec";
 
         const kalimatLucu = [ // Pastikan namanya konsisten
             "Sabar, lagi nyari foto {nama} yang paling glowing...",
@@ -160,17 +160,53 @@
                 overlay.style.opacity = "0";
                 setTimeout(() => overlay.remove(), 500);
             }
-        }        
+        } 
+        
+        async function kirimUpdateKeCloud(daftarTerupdate) {
+            // Tampilkan notifikasi kecil di pojok layar
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-orange-500 text-white px-4 py-2 rounded-full shadow-lg z-[100] text-sm";
+            toast.innerText = "☁️ Menyimpan urutan ke Cloud...";
+            document.body.appendChild(toast);
+
+            // Siapkan data ringkas (hanya ID dan urutan saja biar ringan)
+            const dataRingkas = daftarTerupdate.map(orang => ({
+                id: orang.id,
+                anakKe: orang.anakKe
+            }));
+
+            try {
+                const formData = new FormData();
+                formData.append("action", "UPDATE_URUTAN");
+                formData.append("jsonUrutan", JSON.stringify(dataRingkas));
+
+                const response = await fetch(URL_API, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (response.ok) {
+                    toast.innerText = "✅ Urutan tersimpan permanen!";
+                    toast.classList.replace("bg-orange-500", "bg-green-500");
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            } catch (error) {
+                toast.innerText = "❌ Gagal kirim ke Cloud, tapi aman di Lokal.";
+                toast.classList.replace("bg-orange-500", "bg-red-500");
+                setTimeout(() => toast.remove(), 3000);
+            }
+        }
 
         async function loadDataDariCloud() {
             try {
                 const response = await fetch(URL_API);
                 const data = await response.json();
-                // Simpan hasil dari cloud ke localStorage agar tetap bisa dibuka offline
+                // Simpan hasil terbaru ke lokal
                 localStorage.setItem('daftarKeluarga', JSON.stringify(data));
-                renderPohon(); // Render ulang setelah data terbaru datang
+                renderPohon(); 
             } catch (error) {
                 console.log("Gagal sinkron, menggunakan data lokal.");
+                // Jika offline, tetap render apa yang ada di lokal
                 renderPohon(); 
             }
         }
@@ -330,33 +366,27 @@
         }
 
         function simpanUrutanBaru(kontainer) {
-            // 1. Ambil data master dari localStorage
             let daftarMaster = JSON.parse(localStorage.getItem('daftarKeluarga')) || [];
-            
-            // 2. Ambil semua kartu anak di DALAM kontainer yang baru saja digeser
             const semuaKartuDiSini = kontainer.querySelectorAll('.kartu-anak');
             
             semuaKartuDiSini.forEach((kartu, index) => {
                 const idAnak = kartu.getAttribute('data-id');
-                
-                // Cari orangnya di daftar master dan update nomor urutnya
-                const indexOrang = daftarMaster.findIndex(a => a.id == idAnak);
-                if (indexOrang !== -1) {
-                    daftarMaster[indexOrang].anakKe = index + 1;
-                    console.log(`Update ${daftarMaster[indexOrang].nama} jadi urutan ${index + 1}`);
+                const orang = daftarMaster.find(a => a.id == idAnak);
+                if (orang) {
+                    orang.anakKe = index + 1;
                 }
             });
 
-            // 3. Simpan kembali daftar master yang sudah terupdate ke localStorage
             localStorage.setItem('daftarKeluarga', JSON.stringify(daftarMaster));
             
-            // 4. (Opsional) Kirim ke Google Sheets agar permanen di cloud
-            // kirimUpdateKeCloud(daftarMaster); 
-            
-            console.log("Urutan Bani Muntari permanen di lokal!");
-        }
+            // --- PANGGIL KIRIM KE CLOUD DISINI ---
+            kirimUpdateKeCloud(daftarMaster); 
+        } // <--- Penutup fungsi simpanUrutanBaru
 
-        window.onload = loadDataDariCloud;
+        // Gunakan ini untuk memastikan halaman benar-benar siap
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDataDariCloud();
+        }); // <--- Penutup EventListener
     </script>
 </body>
 </html>
