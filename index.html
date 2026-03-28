@@ -54,6 +54,11 @@
             margin-bottom: 30px;
         }
 
+        .swiper-wrapper {
+            /* Menggunakan cubic-bezier agar gerakan 'sedotan' mulainya lembut dan berhenti lembut */
+            transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1) !important;
+        }
+
         .swiper-slide {
             /* Memaksa GPU HP ikut kerja biar geseran super smooth */
             transform: translateZ(0);
@@ -270,32 +275,31 @@
         // Jalankan saat halaman dimuat
         window.addEventListener('load', tampilkanIklanAcak);
 
-        // Inisialisasi Swiper Slider
         var swiper = new Swiper(".mySwiper", {
             slidesPerView: 1,
             spaceBetween: 10,
             loop: true,
-            speed: 1000, // Kecepatan transisi saat pindah kartu (jangan terlalu lambat agar tidak 'lengket')
+            speed: 1200, // Diperlambat sedikit dari 1000 ke 1200 agar 'sedotan' otomatisnya lebih smooth
 
-            // --- PENGATURAN AGAR GESERAN LEMBUT & TIDAK MEMBAL ---
-            followFinger: true,       // Kartu WAJIB nempel terus di jari saat digeser
-            threshold: 5,             // Sensitivitas awal (pixel). Kalau kegeser 5px baru dianggap gerak
+            followFinger: true,
+            threshold: 10, // Naikkan dikit biar tidak terlalu sensitif sama getaran jari
             touchMoveStopPropagation: true,
 
-            // KUNCI UTAMA: Mengatur ambang batas geser
-            longSwipes: true,         // Izinkan geseran panjang
-            longSwipesRatio: 0.1,     // Cukup geser 30% saja, dia sudah mau pindah ke kartu berikutnya (tidak membal)
-            longSwipesMs: 100,        // Jika ditahan lebih dari 100ms, dia masuk mode geser halus
+            // KUNCI PERBAIKAN:
+            longSwipes: true,
+            longSwipesRatio: 0.5, // UBAH KE 0.5. Kartu baru mau pindah kalau sudah lewat tengah.
+                                // Ini menghilangkan efek 'tersedot' saat baru geser sedikit.
+            longSwipesMs: 300,    // Naikkan ke 300ms agar transisi lebih natural
 
-            // Mematikan magnet 'sentakan' yang bikin loncat/balik lagi
-            shortSwipes: false,        // KUNCI UTAMA: Matikan deteksi sentakan pendek agar tidak loncat tiba-tiba
+            shortSwipes: false, // Tetap false agar tidak kaget
             
-            // Efek Transisi (PENTING)
+            // Tambahkan ini agar geseran jari terasa punya bobot
+            touchRatio: 0.8, 
+
             touchReleaseOnEdges: true, 
             resistance: true,
-            resistanceRatio: 0.3,       // efek 'karet' di ujung agar mantul
+            resistanceRatio: 0.3,
             
-            // --- AUTOPLAY TETAP JALAN ---
             autoplay: {
                 delay: 5000,
                 disableOnInteraction: false,
