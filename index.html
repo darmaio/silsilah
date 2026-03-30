@@ -107,26 +107,27 @@
         .relative-card { position: relative; }
 
         /* --- LOGIKA REFLEKSI MEWAH --- */
+        /* 3. Dekatkan Pagination ke kartu karena refleksinya sudah tipis */
         .wadah-refleksi {
             position: relative;
-            /* Memberikan jarak bawah agar refleksi punya ruang */
-            padding-bottom: 20px; 
+            padding-bottom: 15px; /* Jarak bawah dipersempit */
         }
 
         /* Terapkan refleksi pada Swiper Container */
         .mySwiper {
-            /* Perintah Refleksi (Hanya jalan di Webkit/Blink seperti Chrome/Safari/Edge/HP Android) */
-            -webkit-box-reflect: below 5px -webkit-gradient(
+            /* 1. KUNCI TINGGI REFLEKSI DI SINI */
+            -webkit-box-reflect: below 2px -webkit-gradient(
                 linear, 
                 left top, 
                 left bottom, 
                 from(transparent), 
-                color-stop(60%, transparent), 
-                color-stop(90%, rgba(255, 255, 255, 0.1)), 
-                to(rgba(255, 255, 255, 0.2))
+                /* Di 15% tinggi asli, refleksi mulai hilang */
+                color-stop(15%, rgba(255, 255, 255, 0.1)), 
+                /* Di 25% tinggi asli, refleksi sudah mati total (transparan) */
+                color-stop(25%, transparent), 
+                to(transparent)
             );
             
-            /* Proteksi agar refleksi tidak memotong shadow kartu */
             overflow: visible !important;
         }
 
@@ -137,14 +138,15 @@
 
         /* Jarak agar konten di bawah slider tidak tertabrak */
         /* Jaring pengaman Swiper agar Shadow Kartu tidak terpotong */
+        /* 2. Karena refleksi sudah pendek, jaring pengamannya cukup 80px saja */
         .swiper {
-            clip-path: inset(-100px -100px -300px -100px); /* Bawah diperlebar untuk refleksi */
+            clip-path: inset(-100px -100px -80px -100px); 
         }
 
         .swiper-pagination {
             position: relative !important;
             bottom: -15px !important; /* Angkat sedikit mendekat ke refleksi */
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .swiper-wrapper {
