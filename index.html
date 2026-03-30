@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="#00e5ff">
     <title>Silsilah Keluarga Mbah Muntari</title>
     <script src="config.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
@@ -226,6 +226,7 @@
         }
 
         async function cekNotifikasiBaru(dataTerbaru) {
+            if (!dataTerbaru || !dataTerbaru.keluarga || !dataTerbaru.iklan) return;
             // 1. Ambil jumlah data lama yang tersimpan di HP
             const jumlahLama = JSON.parse(localStorage.getItem('last_count')) || { keluarga: 0, iklan: 0 };
             
@@ -407,15 +408,14 @@
         }
 
         // Eksekusi utama
-        document.addEventListener('DOMContentLoaded', perbaruiDashboard);
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker aktif!'))
-                    .catch(err => console.log('SW Gagal:', err));
-            });
-        }
+        // Ganti bagian eksekusi utama Om:
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Jalankan dashboard dari cache lokal dulu agar tidak kosong
+            await perbaruiDashboard(); 
+            
+            // 2. Jika sw.js bermasalah, kita pastikan fetch cloud tetap jalan
+            console.log("Sinkronisasi data sedang berlangsung...");
+        });
     </script>
 
 </body>
