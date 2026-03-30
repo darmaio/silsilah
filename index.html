@@ -76,7 +76,7 @@
         
         /* Lengkungan Header Tosca */
         .header-curve {
-            background-color: #00e5ff;
+            background: linear-gradient(135deg, #00e5ff 0%, #00acc1 100%);
             height: 90px;
             border-bottom-left-radius: 10% 30px;
             border-bottom-right-radius: 10% 30px;
@@ -106,19 +106,43 @@
         }
         .relative-card { position: relative; }
 
+        /* --- LOGIKA REFLEKSI MEWAH --- */
+        .wadah-refleksi {
+            position: relative;
+            /* Memberikan jarak bawah agar refleksi punya ruang */
+            padding-bottom: 50px; 
+        }
+
+        /* Terapkan refleksi pada Swiper Container */
+        .mySwiper {
+            /* Perintah Refleksi (Hanya jalan di Webkit/Blink seperti Chrome/Safari/Edge/HP Android) */
+            -webkit-box-reflect: below 5px -webkit-gradient(
+                linear, 
+                left top, 
+                left bottom, 
+                from(transparent), 
+                color-stop(60%, transparent), 
+                color-stop(90%, rgba(255, 255, 255, 0.1)), 
+                to(rgba(255, 255, 255, 0.2))
+            );
+            
+            /* Proteksi agar refleksi tidak memotong shadow kartu */
+            overflow: visible !important;
+        }
+
         /* Warna titik navigasi saat aktif */
         .swiper-pagination-bullet-active {
             background: #00e5ff !important;
         }
 
         /* Jarak agar konten di bawah slider tidak tertabrak */
+        /* Jaring pengaman Swiper agar Shadow Kartu tidak terpotong */
         .swiper {
-            margin-bottom: 0px;
-            padding-bottom: 5px !important;
+            clip-path: inset(-100px -100px -300px -100px); /* Bawah diperlebar untuk refleksi */
         }
 
         .swiper-pagination {
-            bottom: 5px !important; /* Menggeser titik ke area padding yang kita buat tadi */
+            bottom: -15px !important; /* Menggeser titik ke area padding yang kita buat tadi */
         }
 
         .swiper-wrapper {
@@ -223,22 +247,19 @@
             </div>
         </div>
 
-        <div class="mt-8 mb-10 px-1">
-            <div class="bg-white rounded-[15px] shadow-xl border border-gray-100 overflow-hidden">
-                <div class="p-6 pb-2 flex justify-between items-center">
-                    <h3 class="font-black text-gray-800 text-sm uppercase tracking-wider">Kabar & Promo</h3>
-                    
-                </div>
+        <div class="mt-8 mb-16 px-6"> <div class="flex justify-between items-center mb-4 px-1">
+                <h3 class="font-black text-gray-800 text-sm uppercase tracking-wider">Kabar & Promo</h3>
+                <span class="bg-tosca/10 text-toscaDark text-[9px] font-bold px-2 py-0.5 rounded-full">TERBARU</span>
+            </div>
 
-                <div class="swiper mySwiper w-full">
+            <div class="wadah-refleksi">
+                <div class="swiper mySwiper w-full !overflow-visible">
                     <div id="containerIklanCloud" class="swiper-wrapper">
-                        <div class="swiper-slide p-10 text-center text-xs text-gray-400 italic">
-                            Memuat kabar dari keluarga...
                         </div>
-                    </div>
-                    <div class="swiper-pagination !bottom-0"></div>
                 </div>
             </div>
+            
+            <div class="swiper-pagination !-bottom-12"></div>
         </div>
     </div>
     
@@ -425,50 +446,47 @@
         }
 
         function renderIklan(daftar, container) {
-    // 1. Ambil yang statusnya Aktif saja
-    const iklanAktif = daftar.filter(item => item.status === "Aktif");
-    
-    if (!iklanAktif || iklanAktif.length === 0) {
-        container.innerHTML = `
-            <div class="swiper-slide p-12 text-center">
-                <span class="text-3xl block mb-2">📢</span>
-                <p class="text-gray-400 text-xs italic">Belum ada kabar atau promo saat ini.</p>
-            </div>`;
-        return;
-    }
+            const iklanAktif = daftar.filter(item => item.status === "Aktif");
+            
+            if (!iklanAktif || iklanAktif.length === 0) {
+                container.innerHTML = `
+                    <div class="swiper-slide bg-white rounded-[15px] p-10 text-center shadow-sm">
+                        <p class="text-gray-400 text-[10px] italic">Belum ada promo saat ini.</p>
+                    </div>`;
+                return;
+            }
 
-    // 2. Balik urutan agar yang baru dikirim muncul paling depan
-    const dataUrut = [...iklanAktif].reverse();
+            const dataUrut = [...iklanAktif].reverse();
+            let html = '';
 
-    let html = '';
-    dataUrut.forEach(item => {
-        // Jika ada link WA, arahkan ke sana, jika tidak kosongkan
-        const linkTujuan = item.link ? item.link : "javascript:void(0)";
-        
-        html += `
-        <div class="swiper-slide px-4 pb-4"> 
-            <a href="${linkTujuan}" target="${item.link ? '_blank' : '_self'}" class="relative block rounded-[5px] overflow-hidden border border-gray-100 active:scale-[0.98] transition-transform h-52 shadow-sm">
+            dataUrut.forEach(item => {
+                const linkTujuan = item.link ? item.link : "javascript:void(0)";
                 
-                <img src="${item.gambar}" class="absolute inset-0 w-full h-full object-cover" alt="Foto Kabar">
-                
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                html += `
+                <div class="swiper-slide"> 
+                    <a href="${linkTujuan}" target="${item.link ? '_blank' : '_self'}" 
+                    class="relative block w-full h-52 rounded-[15px] overflow-hidden shadow-lg active:scale-[0.98] transition-all duration-300">
+                        
+                        <img src="${item.gambar}" class="absolute inset-0 w-full h-full object-cover" alt="Kabar">
+                        
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
 
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                    <h4 class="font-bold text-white text-[13px] mb-0.5 drop-shadow-md">${item.judul}</h4>
-                    <p class="text-[10px] text-gray-200 line-clamp-1 leading-tight drop-shadow-sm">${item.deskripsi}</p>
-                </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4">
+                            <h4 class="font-bold text-white text-[13px] leading-tight mb-1 drop-shadow-md">${item.judul}</h4>
+                            <p class="text-[10px] text-gray-200 line-clamp-1 font-medium drop-shadow-sm">${item.deskripsi}</p>
+                        </div>
 
-            </a>
-        </div>`;
-    });
-    
-    container.innerHTML = html;
-    
-    // 3. Jalankan ulang Swiper agar membaca slide baru
-    setTimeout(() => {
-        inisialisasiSwiper();
-    }, 200);
-}
+                        ${item.link ? '<div class="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-lg shadow-lg">PROMO</div>' : ''}
+                    </a>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+            
+            setTimeout(() => {
+                inisialisasiSwiper();
+            }, 200);
+        }
 
         function updateAngkaGenerasi(data, elemen) {
             if (!data || data.length === 0 || !elemen) return;

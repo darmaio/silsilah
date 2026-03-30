@@ -9,16 +9,32 @@
     <style>
         .header-curve {
             background: linear-gradient(135deg, #00e5ff 0%, #00acc1 100%);
-            height: 120px;
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
+            height: 90px;
+            border-bottom-left-radius: 10% 30px;
+            border-bottom-right-radius: 10% 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .btn-back {
+            position: absolute;
+            left: 15px;
+            top: 35px;
+            background: rgba(39, 38, 38, 0.2);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            position: relative;
+            text-decoration: none;
+            font-weight: bold;
         }
-        .btn-back { position: absolute; left: 20px; font-size: 24px; color: white; border:none; background:none; cursor:pointer; }
         .chart-bar {
             transition: width 1s ease-in-out;
             height: 24px;
