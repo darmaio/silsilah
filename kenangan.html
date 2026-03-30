@@ -8,6 +8,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #fafafa; font-family: sans-serif; }
+
+        /* Lengkungan Header Tosca */
+        .header-curve {
+            background-color: #00e5ff;
+            height: 90px;
+            border-bottom-left-radius: 10% 30px;
+            border-bottom-right-radius: 10% 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .btn-back {
+            position: absolute;
+            left: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
         .card-kenangan {
             background: white;
             border-left: 4px solid #991b1b; /* Merah gelap */
@@ -16,10 +42,11 @@
     </style>
 </head>
 <body class="pb-10">
-    <div class="bg-red-900 text-white p-6 rounded-b-3xl shadow-lg mb-6">
-        <button onclick="window.location.href='index.html'" class="mb-2 text-sm opacity-80">← Kembali</button>
-        <h1 class="text-xl font-bold">Mengenang Keluarga</h1>
-        <p class="text-xs opacity-70">Daftar anggota keluarga yang telah mendahului kita.</p>
+
+    <div class="bg-red-900 header-curve">
+        <button onclick="window.location.href='index.html'" class="btn-back">←</button>
+        <h1 class="text-xl font-bold mt-4">Mengenang Keluarga</h1>
+        <p class="text-xs opacity-70">Anggota keluarga yang telah wafat.</p>
     </div>
 
     <div id="listKenangan" class="px-6 space-y-4">
