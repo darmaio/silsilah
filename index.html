@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00e5ff">
     <meta name="apple-mobile-web-app-status-bar-style" content="#00e5ff">
@@ -13,6 +13,19 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
         body { background-color: #f8f9fa; font-family: sans-serif; }
+
+        /* Jaring Pengaman Grid 3 Kolom */
+        .grid.grid-cols-3 {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+        }
+
+        /* Biar logo & teks di kartu tidak berantakan */
+        .menu-card {
+            min-width: 0; /* Mencegah kartu meluap */
+            width: 100%;
+        }
         
         /* Lengkungan Header Tosca */
         .header-curve {
@@ -116,32 +129,32 @@
 
     <div class="px-6">
         <h2 class="text-lg font-bold my-4">Silsilah Bani Muntari</h2>
-            <div class="grid grid-cols-3 gap-3">
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
+        
+        <div id="menu-utama" class="grid grid-cols-3 gap-3">
+            
             <div class="menu-card" onclick="window.location.href='kenangan.html'">
                 <span class="menu-icon">👥</span>
                 <span class="menu-label">Jumlah Anggota</span>
                 <span class="menu-value" id="angkaJumlah">0</span>
-
                 <div class="flex items-center gap-2 mt-1 text-[10px] font-bold">
-                <div class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-green-800"></span>
-                    <span id="jumlahHidup" class="text-green-900">0</span>
-                </div>
-                <div class="text-gray-300">|</div>
-                <div class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-red-800"></span>
-                    <span id="jumlahWafat" class="text-red-900">0</span>
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-green-800"></span>
+                        <span id="jumlahHidup" class="text-green-900">0</span>
+                    </div>
+                    <div class="text-gray-300">|</div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-red-800"></span>
+                        <span id="jumlahWafat" class="text-red-900">0</span>
+                    </div>
                 </div>
             </div>
-            </div>
+
             <div class="menu-card" onclick="window.location.href='statistik.html'">
                 <span class="menu-icon">🌿</span>
                 <span class="menu-label">Jumlah Generasi</span>
                 <span class="menu-value" id="angkaTotalGenerasi">0</span>
             </div>
+
             <div class="menu-card">
                 <span class="menu-icon">📅</span>
                 <span class="menu-label">Acara Terdekat</span>
@@ -161,14 +174,16 @@
                 <span class="menu-label">Cari Anggota</span>
             </div>
 
-            <div class="menu-card" onclick="window.location.href='kirim-kabar.html'">
+            <div id="menu-kabar" class="menu-card relative-card" onclick="tandaiSudahDilihat('iklan'); window.location.href='kirim-kabar.html'">
                 <span class="menu-icon">📣</span>
                 <span class="menu-label">Kirim Kabar & Promo</span>
             </div>
-            <div id="menu-silsilah" class="menu-card relative-card bg-white p-4 rounded-2xl shadow-md" onclick="tandaiSudahDilihat('keluarga'); window.location.href='pohon-silsilah.html'">
+            
+            <div id="menu-silsilah" class="menu-card relative-card" onclick="tandaiSudahDilihat('keluarga'); window.location.href='pohon-silsilah.html'">
                 <span class="menu-icon">🌳</span>
                 <span class="menu-label">Lihat Silsilah</span>
             </div>
+
             <div class="menu-card">
                 <span class="menu-icon">🏠</span>
                 <span class="menu-label">Ruang Keluarga</span>
