@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="#00e5ff">
     <title>Silsilah Keluarga Mbah Muntari</title>
     <script src="config.js"></script>
-    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
@@ -21,10 +21,48 @@
             gap: 12px !important;
         }
 
-        /* Biar logo & teks di kartu tidak berantakan */
+        /* Grid Menu */
         .menu-card {
-            min-width: 0; /* Mencegah kartu meluap */
+            background: white;
+            border-radius: 15px;
+            padding: 12px 5px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            transition: transform 0.2s;
+            cursor: pointer; /* Agar muncul kursor tangan saat di desktop */
+            -webkit-tap-highlight-color: transparent; /* Menghilangkan kotak biru saat di-tap di HP */
+            -webkit-font-smoothing: antialiased;
+        }
+        /* INI CSS PENGGANTI TAILWIND UNTUK BARIS HIDUP/WAFAT */
+        .status-row {
+            display: flex !important;
+            flex-direction: row !important; /* PAKSA HORIZONTAL */
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 4px;
+            margin-top: 4px;
             width: 100%;
+            font-family: sans-serif !important;
+            font-size: 9px !important;
+            font-weight: bold;
+            white-space: nowrap; /* Anti turun baris */
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
         }
         
         /* Lengkungan Header Tosca */
@@ -40,23 +78,6 @@
             justify-content: center;
             color: white;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        /* Grid Menu */
-        .menu-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-            transition: transform 0.2s;
-            cursor: pointer; /* Agar muncul kursor tangan saat di desktop */
-            -webkit-tap-highlight-color: transparent; /* Menghilangkan kotak biru saat di-tap di HP */
         }
 
         /* Gaya untuk angka notifikasi merah di pojok kartu */
@@ -136,15 +157,16 @@
                 <span class="menu-icon">👥</span>
                 <span class="menu-label">Jumlah Anggota</span>
                 <span class="menu-value" id="angkaJumlah">0</span>
-                <div class="flex items-center gap-2 mt-1 text-[10px] font-bold">
-                    <div class="flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-green-800"></span>
-                        <span id="jumlahHidup" class="text-green-900">0</span>
+                
+                <div class="status-row">
+                    <div class="status-item">
+                        <span class="dot bg-green-600"></span>
+                        <span id="jumlahHidup" style="color: #1d9e4c;">0</span>
                     </div>
-                    <div class="text-gray-300">|</div>
-                    <div class="flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-red-800"></span>
-                        <span id="jumlahWafat" class="text-red-900">0</span>
+                    <div style="color: #d1d5db; margin: 0 2px;">|</div>
+                    <div class="status-item">
+                        <span class="dot bg-red-600"></span>
+                        <span id="jumlahWafat" style="color: #ff0000;">0</span>
                     </div>
                 </div>
             </div>
