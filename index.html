@@ -300,6 +300,16 @@
     </div>
     
     <script>
+        // Update fungsi window load Om untuk memanggil cekIdentitas
+        window.addEventListener('load', () => {
+            // Cek identitas setelah tampilan awal muncul
+            cekIdentitas();
+
+            // Baru ambil data terbaru dari internet setelah 1 detik
+            setTimeout(async () => {
+                await perbaruiDashboardCloud();
+            }, 1000);
+        });
         
         // MODIFIKASI DISINI: Variabel untuk menyimpan instance swiper
         let swiperInstance;
@@ -425,6 +435,8 @@
                 if (elWafat) elWafat.innerText = stats.wafat;
                 if (elGen) updateAngkaGenerasi(dataLokal.keluarga, elGen);
                 if (containerIklan) renderIklan(dataLokal.iklan || [], containerIklan);
+
+                console.log("Beranda: Data dimuat dari memori HP (Instan)");
             }
         }
 
@@ -590,18 +602,7 @@
             alert("Salam kenal, " + nama + "!");
             location.reload();
         }
-
-        // Update fungsi window load Om untuk memanggil cekIdentitas
-        window.addEventListener('load', () => {
-            perbaruiDashboardLokal(); 
-            
-            // Panggil pengecekan identitas
-            cekIdentitas();
-
-            setTimeout(async () => {
-                await perbaruiDashboardCloud();
-            }, 1000);
-        });
+        
     </script>
 
     <div id="modalLogin" class="fixed inset-0 bg-black/80 z-[300] hidden items-center justify-center backdrop-blur-md p-6">
