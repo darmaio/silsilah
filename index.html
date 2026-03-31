@@ -19,6 +19,31 @@
     <script src="config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe.min.css">
+    <script type="module">
+        import PhotoSwipeLightbox from 'https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe-lightbox.esm.min.js';
+        
+        const lightbox = new PhotoSwipeLightbox({
+            gallery: '#containerIklanCloud',
+            children: '.avatar-klik',
+            pswpModule: () => import('https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe.esm.min.js')
+        });
+
+        // Perbaikan Logika: Ambil ukuran asli gambar saat diklik
+        lightbox.addFilter('domItemData', (itemData, element) => {
+            const img = element.querySelector('img');
+            if (img) {
+                itemData.src = element.href;
+                itemData.w = img.naturalWidth || 1000; // Pakai ukuran asli gambar
+                itemData.h = img.naturalHeight || 1500;
+            }
+            return itemData;
+        });
+
+        lightbox.init();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
         body { background-color: #f8f9fa; font-family: sans-serif; }
@@ -459,10 +484,9 @@
             const iklanAktif = daftar.filter(item => item.status === "Aktif");
             
             if (!iklanAktif || iklanAktif.length === 0) {
-                container.innerHTML = `
-                    <div class="swiper-slide bg-white rounded-[15px] p-10 text-center shadow-sm">
-                        <p class="text-gray-400 text-[10px] italic">Belum ada promo saat ini.</p>
-                    </div>`;
+                container.innerHTML = `<div class="swiper-slide bg-white rounded-[15px] p-10 text-center shadow-sm">
+                                        <p class="text-gray-400 text-[10px] italic">Belum ada kabar saat ini.</p>
+                                    </div>`;
                 return;
             }
 
@@ -470,23 +494,25 @@
             let html = '';
 
             dataUrut.forEach(item => {
-                const linkTujuan = item.link ? item.link : "javascript:void(0)";
-                
+                const isSponsor = item.link && item.link.trim() !== "";
+                const hrefAction = isSponsor ? item.link : item.gambar;
+                const pswpClass = !isSponsor ? "avatar-klik" : "";
+                const targetAttr = isSponsor ? 'target="_blank"' : "";
+
                 html += `
                 <div class="swiper-slide"> 
-                    <a href="${linkTujuan}" target="${item.link ? '_blank' : '_self'}" 
-                    class="relative block w-full h-52 rounded-[15px] overflow-hidden shadow-lg active:scale-[0.98] transition-all duration-300">
-                        
+                    <a href="${hrefAction}" ${targetAttr} class="${pswpClass} block relative w-full h-52 rounded-[15px] overflow-hidden shadow-lg active:scale-[0.95] transition-all">
                         <img src="${item.gambar}" class="absolute inset-0 w-full h-full object-cover" alt="Kabar">
-                        
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-
-                        <div class="absolute bottom-0 left-0 right-0 p-4">
+                        <div class="absolute bottom-0 left-0 right-0 p-4 text-left">
                             <h4 class="font-bold text-white text-[13px] leading-tight mb-1 drop-shadow-md">${item.judul}</h4>
                             <p class="text-[10px] text-gray-200 line-clamp-1 font-medium drop-shadow-sm">${item.deskripsi}</p>
                         </div>
-
-                        ${item.link ? '<div class="absolute top-2 right-2 bg-green-600 text-gray-100 text-[8px] font-bold px-2 py-1 rounded-lg shadow-lg">Sponsor</div>' : ''}
+                        <div class="absolute top-2 right-2 px-2 py-1 rounded-lg shadow-lg text-[8px] font-bold uppercase tracking-wider">
+                            ${isSponsor 
+                                ? '<span class="bg-green-600 text-white px-2 py-1 rounded-md">🟢 Sponsor (WA)</span>' 
+                                : '<span class="bg-blue-600 text-white px-2 py-1 rounded-md">📢 Berita</span>'}
+                        </div>
                     </a>
                 </div>`;
             });
@@ -494,8 +520,8 @@
             container.innerHTML = html;
             
             setTimeout(() => {
-                inisialisasiSwiper();
-            }, 200);
+                if (typeof inisialisasiSwiper === "function") inisialisasiSwiper();
+            }, 300);
         }
 
         function updateAngkaGenerasi(data, elemen) {
