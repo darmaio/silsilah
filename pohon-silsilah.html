@@ -98,10 +98,22 @@
             opacity: 0;
         }
         .viewport:active { cursor: grabbing; }
+        
         .tree-canvas {
-            min-width: 2000px;
-            padding: 50px;
-            display: inline-block;
+            /* Menghilangkan angka kaku 2000px */
+            width: max-content; 
+            min-width: 100vw; /* Minimal selebar layar HP kamu */
+            
+            /* Memberi ruang kosong agar saat zoom out kartu tidak mepet layar */
+            padding: 100px; 
+            
+            /* PUSATKAN SEMUANYA DI SINI */
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            
+            /* Pastikan titik zoom ada di tengah atas */
+            transform-origin: top center; 
         }
 
         /* --- LOGIKA GULUNG (WAJIB ADA) --- */
@@ -205,6 +217,13 @@
         /* Pastikan PhotoSwipe di atas segalanya */
         .pswp {
             z-index: 9999;
+        }
+
+        #treeWrapper {
+            transform-origin: top center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Memastikan isi silsilah selalu di tengah kanvas */
         }
 
         /* Supaya container pohon tidak pecah saat scale down */
