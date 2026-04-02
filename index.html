@@ -3,7 +3,7 @@
 <head>
     <title>Beranda - Silsilah Bani Muntari</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4RDDKDQNKB"></script>
     <script>
@@ -46,7 +46,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <style>
-        body { background-color: #f8f9fa; font-family: sans-serif; }
+        body { 
+            background-color: #f8f9fa; 
+            font-family: sans-serif; 
+            margin: 0;
+            padding: 0;
+            /* Pastikan scroll aktif */
+            overflow-x: hidden;
+            overflow-y: auto; 
+            height: auto;
+            min-height: 100vh;
+            -webkit-overflow-scrolling: touch; /* Scroll halus di iPhone */
+        }
 
         /* Jaring Pengaman Grid 3 Kolom */
         .grid.grid-cols-3 {
@@ -302,6 +313,8 @@
     <script>
         // Update fungsi window load Om untuk memanggil cekIdentitas
         window.addEventListener('load', () => {
+            // Memastikan overflow body kembali normal saat loading
+            document.body.style.overflow = 'auto';
             // 1. Cek identitas user
             cekIdentitas();
 
@@ -606,6 +619,12 @@
 
             // Tutup modal dan refresh
             alert("Salam kenal, " + nama + "!");
+
+            const modal = document.getElementById('modalLogin');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Pastikan scroll hidup
+            }
             location.reload();
         }
         
