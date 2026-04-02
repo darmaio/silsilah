@@ -55,7 +55,13 @@
         /* Tambahkan ini untuk memastikan body tidak melar */
         html, body {
             max-width: 100%;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Sembunyikan luberan ke samping */
+            overflow-y: auto;   /* Pastikan vertikal aktif */
+            position: relative;
+            height: auto;       /* Jangan dipaksa 100% agar konten bawah bisa di-scroll */
+            min-height: 100vh;
+            touch-action: pan-y; /* Memberitahu browser: prioritaskan scroll vertikal */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Jaring Pengaman Grid 3 Kolom */
@@ -150,28 +156,29 @@
         }
         .relative-card { position: relative; }
 
-        /* --- LOGIKA REFLEKSI MEWAH --- */
         .wadah-refleksi {
             position: relative;
-            /* Memberikan jarak bawah agar refleksi punya ruang */
-            padding-bottom: 20px; 
+            width: 100%;
+            max-width: 100vw;
+            overflow: hidden; /* Ini WAJIB ada di pembungkus luar agar refleksi tidak memicu scroll horizontal */
+            padding-bottom: 40px; /* Ruang untuk pantulan */
         }
 
-        /* Terapkan refleksi pada Swiper Container */
         .mySwiper {
-            /* Perintah Refleksi (Hanya jalan di Webkit/Blink seperti Chrome/Safari/Edge/HP Android) */
-            -webkit-box-reflect: below 5px -webkit-gradient(
-                linear, 
-                left top, 
-                left bottom, 
-                from(transparent), 
-                color-stop(60%, transparent), 
-                color-stop(90%, rgba(255, 255, 255, 0.1)), 
-                to(rgba(255, 255, 255, 0.2))
-            );
+            /* Gunakan width 100% saja, jangan vw agar tidak bentrok dengan padding */
+            width: 100%; 
             
-            /* Proteksi agar refleksi tidak memotong shadow kartu */
-            overflow: visible !important;
+            /* Tetapkan refleksi */
+            -webkit-box-reflect: below 2px -webkit-gradient(
+                linear, left top, left bottom, 
+                from(transparent), 
+                color-stop(70%, transparent), 
+                to(rgba(255, 255, 255, 0.15))
+            );
+
+            /* HAPUS overflow: visible !important jika tidak sangat diperlukan */
+            /* Atau gunakan ini agar shadow tetap aman tapi tidak merusak scroll: */
+            clip-path: inset(-100px -100px -200px -100px); 
         }
 
         /* Warna titik navigasi saat aktif */
