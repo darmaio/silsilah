@@ -733,23 +733,16 @@
 
         document.getElementById('searchInput').addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
-            const keyword = e.target.value.toLowerCase();
+            const keyword = e.target.value.trim().toLowerCase(); // Tambahkan .trim() di sini
             
             if (keyword.length < 2) {
                 document.getElementById('searchResultCount').innerText = "";
                 return;
             }
 
-            // Debounce agar tidak berat saat mengetik
             searchTimeout = setTimeout(() => {
-                const semuaOrang = getDaftarKeluarga();
-                const hasil = semuaOrang.filter(o => o.nama.toLowerCase().includes(keyword));
-                
-                document.getElementById('searchResultCount').innerText = hasil.length > 0 ? `${hasil.length}` : "0";
-
-                if (hasil.length === 1) {
-                    temukanDanFokus(hasil[0].id);
-                }
+                // Panggil fungsi jalankanPencarian agar logikanya terpusat di satu tempat
+                jalankanPencarian(keyword);
             }, 800);
         });
 
@@ -763,14 +756,25 @@
         });
 
         function jalankanPencarian(keyword) {
+            // .trim() akan menghapus spasi di awal atau akhir yang sering muncul di HP
+            const cleanKeyword = keyword.trim().toLowerCase(); 
+            
+            if (cleanKeyword === "") return; // Jangan cari kalau kosong
+
             const semuaOrang = getDaftarKeluarga();
-            const hasil = semuaOrang.filter(o => o.nama.toLowerCase().includes(keyword));
+            const hasil = semuaOrang.filter(o => {
+                // Pastikan o.nama ada (tidak null) sebelum di-toLowerCase
+                return o.nama && o.nama.toLowerCase().includes(cleanKeyword);
+            });
             
             const countEl = document.getElementById('searchResultCount');
-            if (countEl) countEl.innerText = hasil.length > 0 ? `${hasil.length}` : "0";
+            if (countEl) {
+                countEl.innerText = hasil.length > 0 ? `${hasil.length}` : "0";
+                // Tambahan: Warna merah jika 0, hijau jika ketemu
+                countEl.style.color = hasil.length > 0 ? "#22c55e" : "#ef4444";
+            }
 
             if (hasil.length > 0) {
-                // Fokus ke hasil pertama yang paling cocok
                 temukanDanFokus(hasil[0].id);
             }
         }
