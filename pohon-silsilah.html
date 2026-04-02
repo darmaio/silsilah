@@ -393,7 +393,7 @@
         // JALANKAN PERTAMA KALI (INSTAN)
         tampilkanKalimatAcak();
 
-        // JALANKAN BERIKUTNYA SECARA BERKALA (SETIAP 3.5 DETIK)
+        // JALANKAN BERIKUTNYA SECARA BERKALA (SETIAP 7 DETIK)
         const intervalKalimat = setInterval(() => {
             const el = document.getElementById('loadingText');
             if (el) {
@@ -403,7 +403,7 @@
                     el.style.opacity = 1; // Efek fade in
                 }, 500);
             }
-        }, 5000);
+        }, 7000);
 
         // FUNGSI UNTUK MENGHILANGKAN LOADING
         function sembunyikanLoading() {
