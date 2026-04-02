@@ -746,7 +746,16 @@
                 if (hasil.length === 1) {
                     temukanDanFokus(hasil[0].id);
                 }
-            }, 500);
+            }, 800);
+        });
+
+        // TAMBAHKAN INI: Agar saat klik Enter/Masuk/Selesai di HP langsung bereaksi
+        inputCari.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const keyword = e.target.value.toLowerCase();
+                jalankanPencarian(keyword);
+                inputCari.blur(); // PENTING: Menutup keyboard HP agar user bisa lihat hasilnya
+            }
         });
 
         function temukanDanFokus(id) {
