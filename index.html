@@ -52,16 +52,18 @@
             -webkit-overflow-scrolling: touch; /* Scroll halus di iPhone */
         }
 
-        /* Tambahkan ini untuk memastikan body tidak melar */
+        /* Terapkan di SEMUA file .html yang macet */
         html, body {
-            max-width: 100%;
-            overflow-x: hidden; /* Sembunyikan luberan ke samping */
-            overflow-y: auto;   /* Pastikan vertikal aktif */
-            position: relative;
-            height: auto;       /* Jangan dipaksa 100% agar konten bawah bisa di-scroll */
-            min-height: 100vh;
-            touch-action: pan-y; /* Memberitahu browser: prioritaskan scroll vertikal */
-            -webkit-overflow-scrolling: touch;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important; /* JANGAN gunakan 100% atau 100vh */
+            min-height: 100.1% !important; /* Trik agar browser tahu ada konten yang harus di-scroll */
+            overflow-x: hidden !important; /* Matikan horizontal yang mengganggu */
+            overflow-y: auto !important;   /* Paksa vertikal muncul */
+            position: relative !important;
+            touch-action: pan-y !important; /* KUNCI: Hanya izinkan scroll vertikal */
+            -webkit-overflow-scrolling: touch !important; /* Scroll halus iPhone */
         }
 
         /* Jaring Pengaman Grid 3 Kolom */
