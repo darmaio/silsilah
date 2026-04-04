@@ -354,24 +354,25 @@
         function cekIdentitas() {
             const namaSaved = localStorage.getItem('userNama');
             if (!namaSaved) {
-                perbaruiDashboardCloud();
+                // Langsung sedot data tanpa nunggu user login
+                perbaruiDashboardCloud().then(() => {
+                    console.log("Data siap untuk autocomplete HP");
+                });
+
                 const modal = document.getElementById('modalLogin');
-                const input = document.getElementById('inputNamaUser');
-                
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     document.body.style.overflow = 'hidden';
                     
-                    setTimeout(() => { 
-                        if (input) {
-                            input.focus();
-                            input.click(); 
-                        }
-                    }, 500);
-
-                    // Aktifkan fitur saran nama saat mengetik
+                    // Aktifkan saran nama
                     aktifkanAutocompleteNama();
+
+                    // Di HP, auto-focus sering gagal kalau tidak dipicu klik/timeout lama
+                    setTimeout(() => { 
+                        const input = document.getElementById('inputNamaUser');
+                        if (input) input.focus();
+                    }, 1000); 
                 }
             }
         }
@@ -646,7 +647,7 @@
                     placeholder="Contoh: Muntari"
                     autocomplete="off">
                 
-                <div id="listSaranNama" class="absolute left-0 right-0 top-[100%] bg-white border border-gray-100 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto hidden">
+                <div id="listSaranNama" class="absolute left-0 right-0 top-[100%] bg-white border border-gray-100 rounded-2xl shadow-xl z-[99999] max-h-48 overflow-y-auto hidden">
                     </div>
             </div>
             
