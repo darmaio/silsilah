@@ -576,33 +576,41 @@
 
         let sedangSinkron = false;
         async function perbaruiDashboardCloud() {
-            if (sedangSinkron) return; // Jika sedang download, jangan mulai download lagi
-                sedangSinkron = true;
+            if (sedangSinkron) return; 
+            sedangSinkron = true;
+            
             const input = document.getElementById('inputNamaUser');
             
             try {
-                const response = await fetch(URL_API + "?t=" + Date.now());
+                // Gunakan cache: 'no-cache' agar HP tidak mengambil data jadul
+                const response = await fetch(URL_API + "?t=" + Date.now(), {
+                    cache: 'no-cache'
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const resJson = await response.json();
 
                 if (resJson && resJson.keluarga) {
                     localStorage.setItem('dataCloud', JSON.stringify(resJson));
                     
-                    // AKTIFKAN INPUT SETELAH DATA SIAP
                     if (input) {
                         input.disabled = false;
                         input.placeholder = "Contoh: Muntari";
                         input.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
                         input.classList.add('bg-gray-50', 'text-gray-700');
-                        input.focus(); // Langsung arahkan kursor ke sini
                     }
+                    console.log("Data berhasil diperbarui dari Cloud");
                     
-                    console.log("Data siap untuk autocomplete HP");
+                    // PAKSA update dashboard setelah data masuk
+                    perbaruiDashboardLokal();
                 }
             } catch (err) {
-                if (input) input.placeholder = "Memeriksa daftar nama...";
-                console.error("Gagal sinkronisasi:", err);
+                console.error("Gagal sinkronisasi di HP:", err);
+                if (input) input.placeholder = "Gagal memuat daftar nama...";
+            } finally {
+                sedangSinkron = false; 
             }
-            sedangSinkron = false; // Setel kembali ke false setelah selesai
         }
 
         function hitungStatusSederhana(data) {
