@@ -390,16 +390,10 @@
             const listSaran = document.getElementById('listSaranNama');
             const statusSaran = document.getElementById('statusSaran');
             const kontenSaran = document.getElementById('kontenSaran');
-            
-            // Variabel pengunci agar tidak muncul 2x saat diklik
-            let isSelecting = false; 
 
             if (!input || !listSaran) return;
 
             input.addEventListener('input', function() {
-                // Jika sedang proses memilih, jangan lakukan pencarian
-                if (isSelecting) return; 
-
                 const teks = this.value.trim().toLowerCase();
                 kontenSaran.innerHTML = '';
                 
@@ -411,12 +405,26 @@
                 listSaran.classList.remove('hidden');
                 const dataLokalRaw = localStorage.getItem('dataCloud');
 
+                // JIKA DATA BELUM ADA
                 if (!dataLokalRaw) {
-                    statusSaran.innerHTML = `<i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menghubungkan...`;
+                    statusSaran.innerHTML = `<i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menghubungkan ke server...`;
                     statusSaran.classList.remove('hidden');
+                    
+                    // Panggil sinkronisasi, tapi beri penanganan jika gagal
+                    perbaruiDashboardCloud().then(() => {
+                        const checkData = localStorage.getItem('dataCloud');
+                        if (checkData) {
+                            input.dispatchEvent(new Event('input')); // Ulangi pencarian jika sukses
+                        } else {
+                            statusSaran.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Gagal memuat data.`;
+                        }
+                    }).catch(() => {
+                        statusSaran.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Masalah koneksi.`;
+                    });
                     return;
                 }
 
+                // JIKA DATA ADA, PROSES FILTER SEPERTI BIASA
                 const dataLokal = JSON.parse(dataLokalRaw);
                 const matches = dataLokal.keluarga.filter(p => 
                     p.nama && p.nama.toLowerCase().includes(teks)
@@ -426,7 +434,7 @@
                     statusSaran.classList.add('hidden');
                     matches.forEach(p => {
                         const item = document.createElement('div');
-                        item.className = "p-4 border-b border-gray-50 hover:bg-cyan-50 active:bg-cyan-100 cursor-pointer flex items-center gap-3 text-left";
+                        item.className = "p-4 border-b border-gray-50 hover:bg-cyan-50 cursor-pointer flex items-center gap-3 text-left";
                         
                         const imgUrl = (p.foto && p.foto.length > 20) ? p.foto : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.nama)}&background=00e5ff&color=fff`;
                         
@@ -436,22 +444,12 @@
                         `;
                         
                         item.onclick = () => {
-                            // KUNCI: Setel status sedang memilih
-                            isSelecting = true; 
-                            
-                            input.value = p.nama; 
-                            listSaran.classList.add('hidden'); // Sembunyikan daftar
-                            
+                            input.value = p.nama;
+                            listSaran.classList.add('hidden');
                             const containerAvatar = document.getElementById('containerAvatar');
                             if (containerAvatar) {
                                 containerAvatar.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border-2 border-white shadow-md">`;
                             }
-                            
-                            // Simpan data foto ke atribut sementara untuk proses login
-                            input.dataset.selectedFoto = imgUrl;
-
-                            // Buka kunci setelah jeda singkat agar input tidak trigger lagi
-                            setTimeout(() => { isSelecting = false; }, 500); 
                         };
                         kontenSaran.appendChild(item);
                     });
