@@ -193,21 +193,25 @@
 
         // 5. Fitur Cari
         function filterAnggota() {
+            // Gunakan .trim() untuk membuang spasi di awal/akhir yang sering tidak sengaja terketik
             const input = document.getElementById('searchInput').value.toLowerCase().trim();
             const daftarKeluarga = getDaftarDariStorage();
             
-            // Jika kotak pencarian kosong, tampilkan semua data normal
+            // Jika kotak pencarian kosong, tampilkan semua data
             if (input === "") {
                 renderData(daftarKeluarga, false);
                 return;
             }
 
-            const hasilFilter = daftarKeluarga.filter(anggota => 
-                (anggota.nama && anggota.nama.toLowerCase().includes(input)) || 
-                (anggota.domisili && anggota.domisili.toLowerCase().includes(input))
-            );
+            const hasilFilter = daftarKeluarga.filter(anggota => {
+                // Pastikan variabel ada nilainya sebelum di-lowercase agar tidak error
+                const nama = (anggota.nama || "").toLowerCase();
+                const domisili = (anggota.domisili || "").toLowerCase();
+                
+                return nama.includes(input) || domisili.includes(input);
+            });
 
-            // KUNCI: Tambahkan 'true' agar renderData tahu ini adalah hasil pencarian
+            // Kirim isSearching = true agar tidak muncul kotak merah
             renderData(hasilFilter, true); 
         }
 
