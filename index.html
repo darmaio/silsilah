@@ -353,27 +353,35 @@
 
         function cekIdentitas() {
             const namaSaved = localStorage.getItem('userNama');
+            const dataLokal = localStorage.getItem('dataCloud');
+
             if (!namaSaved) {
-                // Langsung sedot data tanpa nunggu user login
-                perbaruiDashboardCloud().then(() => {
-                    console.log("Data siap untuk autocomplete HP");
-                });
+                // HANYA panggil jika dataCloud memang belum ada (habis clear cache)
+                if (!dataLokal) {
+                    perbaruiDashboardCloud(); 
+                } else {
+                    // Jika data sudah ada, langsung aktifkan input tanpa nunggu download
+                    aktifkanInputNama(); 
+                }
 
                 const modal = document.getElementById('modalLogin');
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     document.body.style.overflow = 'hidden';
-                    
-                    // Aktifkan saran nama
                     aktifkanAutocompleteNama();
-
-                    // Di HP, auto-focus sering gagal kalau tidak dipicu klik/timeout lama
-                    setTimeout(() => { 
-                        const input = document.getElementById('inputNamaUser');
-                        if (input) input.focus();
-                    }, 1000); 
                 }
+            }
+        }
+
+        function aktifkanInputNama() {
+            const input = document.getElementById('inputNamaUser');
+            if (input && input.disabled) {
+                input.disabled = false;
+                input.placeholder = "Ketik nama lengkap Om/Tante...";
+                input.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                input.classList.add('bg-gray-50', 'text-gray-700');
+                input.focus();
             }
         }
 
@@ -382,10 +390,16 @@
             const listSaran = document.getElementById('listSaranNama');
             const statusSaran = document.getElementById('statusSaran');
             const kontenSaran = document.getElementById('kontenSaran');
+            
+            // Variabel pengunci agar tidak muncul 2x saat diklik
+            let isSelecting = false; 
 
             if (!input || !listSaran) return;
 
             input.addEventListener('input', function() {
+                // Jika sedang proses memilih, jangan lakukan pencarian
+                if (isSelecting) return; 
+
                 const teks = this.value.trim().toLowerCase();
                 kontenSaran.innerHTML = '';
                 
@@ -397,24 +411,19 @@
                 listSaran.classList.remove('hidden');
                 const dataLokalRaw = localStorage.getItem('dataCloud');
 
-                // KONDISI 1: Data belum selesai di-download
                 if (!dataLokalRaw) {
-                    statusSaran.innerHTML = `<i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menghubungkan ke server...`;
-                    perbaruiDashboardCloud().then(() => {
-                        // Panggil ulang event input secara otomatis setelah download selesai
-                        input.dispatchEvent(new Event('input'));
-                    });
+                    statusSaran.innerHTML = `<i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menghubungkan...`;
+                    statusSaran.classList.remove('hidden');
                     return;
                 }
 
-                // KONDISI 2: Data sudah ada, mulai filter
                 const dataLokal = JSON.parse(dataLokalRaw);
                 const matches = dataLokal.keluarga.filter(p => 
                     p.nama && p.nama.toLowerCase().includes(teks)
                 ).slice(0, 5);
 
                 if (matches.length > 0) {
-                    statusSaran.classList.add('hidden'); // Sembunyikan loading
+                    statusSaran.classList.add('hidden');
                     matches.forEach(p => {
                         const item = document.createElement('div');
                         item.className = "p-4 border-b border-gray-50 hover:bg-cyan-50 active:bg-cyan-100 cursor-pointer flex items-center gap-3 text-left";
@@ -427,17 +436,26 @@
                         `;
                         
                         item.onclick = () => {
-                            input.value = p.nama;
-                            listSaran.classList.add('hidden');
+                            // KUNCI: Setel status sedang memilih
+                            isSelecting = true; 
+                            
+                            input.value = p.nama; 
+                            listSaran.classList.add('hidden'); // Sembunyikan daftar
+                            
                             const containerAvatar = document.getElementById('containerAvatar');
                             if (containerAvatar) {
                                 containerAvatar.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border-2 border-white shadow-md">`;
                             }
+                            
+                            // Simpan data foto ke atribut sementara untuk proses login
+                            input.dataset.selectedFoto = imgUrl;
+
+                            // Buka kunci setelah jeda singkat agar input tidak trigger lagi
+                            setTimeout(() => { isSelecting = false; }, 500); 
                         };
                         kontenSaran.appendChild(item);
                     });
                 } else {
-                    // KONDISI 3: Nama tidak ditemukan
                     statusSaran.innerHTML = `<i class="fas fa-search text-gray-300 mr-2"></i> Nama tidak ditemukan`;
                     statusSaran.classList.remove('hidden');
                 }
@@ -534,7 +552,10 @@
             }
         }
 
+        let sedangSinkron = false;
         async function perbaruiDashboardCloud() {
+            if (sedangSinkron) return; // Jika sedang download, jangan mulai download lagi
+                sedangSinkron = true;
             const input = document.getElementById('inputNamaUser');
             
             try {
@@ -559,6 +580,7 @@
                 if (input) input.placeholder = "Gagal memuat data, periksa koneksi.";
                 console.error("Gagal sinkronisasi:", err);
             }
+            sedangSinkron = false; // Setel kembali ke false setelah selesai
         }
 
         function hitungStatusSederhana(data) {
