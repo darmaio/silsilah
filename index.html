@@ -536,17 +536,34 @@
             const elJumlah = document.getElementById('angkaJumlah');
             const elGen = document.getElementById('angkaTotalGenerasi');
             const containerIklan = document.getElementById('containerIklanCloud');
+            
+            // Ambil data terbaru dari storage
             const dataLokalRaw = localStorage.getItem('dataCloud');
             
             if (dataLokalRaw) {
-                const dataLokal = JSON.parse(dataLokalRaw);
-                const stats = hitungStatusSederhana(dataLokal.keluarga);
-                
-                if (elJumlah) elJumlah.innerText = stats.total;
-                if (document.getElementById('jumlahHidup')) document.getElementById('jumlahHidup').innerText = stats.hidup;
-                if (document.getElementById('jumlahWafat')) document.getElementById('jumlahWafat').innerText = stats.wafat;
-                if (elGen) updateAngkaGenerasi(dataLokal.keluarga, elGen);
-                if (containerIklan) renderIklan(dataLokal.iklan || [], containerIklan);
+                try {
+                    const dataLokal = JSON.parse(dataLokalRaw);
+                    const keluarga = dataLokal.keluarga || [];
+                    
+                    // Hitung Anggota (Hidup/Wafat)
+                    const stats = hitungStatusSederhana(keluarga);
+                    if (elJumlah) elJumlah.innerText = stats.total;
+                    if (document.getElementById('jumlahHidup')) document.getElementById('jumlahHidup').innerText = stats.hidup;
+                    if (document.getElementById('jumlahWafat')) document.getElementById('jumlahWafat').innerText = stats.wafat;
+                    
+                    // Update Generasi
+                    if (elGen) updateAngkaGenerasi(keluarga, elGen);
+                    
+                    // Render Iklan
+                    if (containerIklan) renderIklan(dataLokal.iklan || [], containerIklan);
+                    
+                    console.log("Dashboard berhasil diupdate dengan " + keluarga.length + " anggota.");
+                } catch (e) {
+                    console.error("Gagal memproses data dashboard:", e);
+                }
+            } else {
+                console.warn("Data Cloud tidak ditemukan di localStorage. Mencoba tarik ulang...");
+                perbaruiDashboardCloud(); // Tarik paksa jika kosong
             }
         }
 
