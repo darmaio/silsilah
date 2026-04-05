@@ -81,7 +81,7 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="searchInput" onkeyup="filterAnggota()" placeholder="Cari nama anggota keluarga..." class="search-input">
+        <input type="text" id="searchInput" placeholder="Cari nama anggota keluarga..." class="search-input">
     </div>
 
     <div id="wadahDaftar" class="p-6 mt-2">
@@ -142,7 +142,6 @@
         function renderData(data, isSearching = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
             
-            // Jika data benar-benar kosong dari awal (Gagal Sinkron)
             if (!data || (data.length === 0 && !isSearching)) {
                 wadahDaftar.innerHTML = `
                     <div class="text-center mt-12 px-6">
@@ -154,20 +153,19 @@
                 return;
             }
 
-            // Jika sedang mencari tapi tidak ada yang cocok
             if (data.length === 0 && isSearching) {
                 wadahDaftar.innerHTML = `
                     <div class="text-center mt-12 px-6">
-                        <p class="text-gray-400 italic text-sm">Nama atau lokasi tersebut tidak ditemukan di daftar keluarga.</p>
+                        <p class="text-gray-400 italic text-sm">Nama atau lokasi tidak ditemukan.</p>
                     </div>`;
                 return;
             }
 
-            wadahDaftar.innerHTML = ''; 
             // Urutkan Nama A-Z
-            const dataTerurut = [...data].sort((a, b) => a.nama.localeCompare(b.nama));
+            const dataTerurut = [...data].sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
 
-            dataTerurut.forEach(anggota => {
+            // Gunakan Map + Join agar render di HP jauh lebih ringan dan cepat
+            const htmlKartu = dataTerurut.map(anggota => {
                 let sumberFoto = anggota.foto;
                 if (!sumberFoto || sumberFoto === "null" || sumberFoto === "" || sumberFoto.length < 20) {
                     sumberFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(anggota.nama)}&background=00e5ff&color=fff`;
@@ -177,7 +175,7 @@
                     ? `${anggota.tempatLahir || ''}, ${anggota.tanggalLahir || ''}`
                     : "Data kelahiran belum diisi";
 
-                wadahDaftar.innerHTML += `
+                return `
                     <div class="member-card shadow-sm cursor-pointer hover:bg-gray-50 flex items-center p-4 bg-white mb-3 rounded-2xl border border-gray-100" 
                         onclick="window.location.href='tambah-anggota.html?id=${anggota.id}'">
                         <img src="${sumberFoto}" class="w-14 h-14 rounded-full object-cover border-2 border-[#00e5ff] shadow-sm mr-4">
@@ -188,7 +186,9 @@
                         </div>
                         <div class="text-gray-300 ml-2">❯</div>
                     </div>`;
-            });
+            }).join('');
+
+            wadahDaftar.innerHTML = htmlKartu; 
         }
 
         // 5. Fitur Cari
@@ -214,9 +214,14 @@
             // Kirim isSearching = true agar tidak muncul kotak merah
             renderData(hasilFilter, true); 
         }
+        // Tambahkan ini di bagian bawah script agar lebih peka di HP
+        document.getElementById('searchInput').addEventListener('input', filterAnggota);
 
         // Jalankan saat halaman dibuka
-        window.onload = muatDaftarAnggota;
+        // Jalankan saat dokumen siap
+        document.addEventListener('DOMContentLoaded', () => {
+            muatDaftarAnggota();
+        });
     </script>
 </body>
 </html>
