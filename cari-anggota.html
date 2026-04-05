@@ -98,49 +98,42 @@
         </div>
 
      
+    <script src="config.js"></script>
     <script>
-        let dataSiap = false; // Kunci pengaman agar tidak cari di data kosong
+        let dataSiap = false;
         let timeoutPencarian = null;
 
         document.getElementById('btnBack').addEventListener('click', () => {
             window.location.href = 'index.html';
         });
         
-        function getDaftarDariStorage() {
-            const dataRaw = localStorage.getItem('dataCloud');
-            if (dataRaw) {
-                const parsed = JSON.parse(dataRaw);
-                return parsed.keluarga || []; 
-            }
-            return [];
-        }
-
+        // 1. Fungsi Ambil Data: Lebih kuat dalam mendeteksi struktur JSON
         function getDaftarDariStorage() {
             try {
-                const dataRaw = localStorage.getItem('dataCloud'); // Pastikan kuncinya 'dataCloud'
+                const dataRaw = localStorage.getItem('dataCloud');
                 if (dataRaw) {
                     const parsed = JSON.parse(dataRaw);
-                    // Pastikan mengambil properti .keluarga
-                    return parsed.keluarga || []; 
+                    // Cek apakah datanya ada di dalam properti 'keluarga' atau langsung array
+                    return parsed.keluarga || (Array.isArray(parsed) ? parsed : []); 
                 }
             } catch (e) {
-                console.error("Gagal parse JSON storage:", e);
+                console.error("Gagal baca storage:", e);
             }
             return [];
         }
 
+        // 2. Fungsi Utama: Pastikan data benar-benar ada sebelum bisa diketik
         async function muatDaftarAnggota() {
             const wadahDaftar = document.getElementById('wadahDaftar');
             const inputCari = document.getElementById('searchInput');
             
-            // Ambil data yang ada sekarang
             let daftarKeluarga = getDaftarDariStorage();
 
-            // JIKA DATA KOSONG (0): Tarik paksa dari Google Sheets
+            // Jika masih kosong, coba tarik dari Cloud (Sync ulang)
             if (daftarKeluarga.length === 0) {
-                console.log("Storage kosong, menarik data dari Cloud...");
+                console.log("Data kosong, mencoba tarik dari Cloud...");
                 inputCari.disabled = true;
-                inputCari.placeholder = "Mengunduh data keluarga...";
+                inputCari.placeholder = "Menghubungkan ke pusat...";
                 
                 wadahDaftar.innerHTML = `
                     <div class="text-center mt-12 px-6">
@@ -150,26 +143,26 @@
                     </div>`;
                 
                 await sinkronisasiDataCloud();
-                daftarKeluarga = getDaftarDariStorage(); // Ambil lagi setelah download
+                daftarKeluarga = getDaftarDariStorage();
             }
 
-            // Jika masih kosong juga setelah download, berarti ada masalah di API/Sheet
-            if (daftarKeluarga.length === 0) {
-                console.error("Data tetap 0 setelah sinkronisasi cloud.");
+            if (daftarKeluarga.length > 0) {
+                dataSiap = true;
+                inputCari.disabled = false;
+                inputCari.placeholder = "Cari nama anggota keluarga...";
+                renderData(daftarKeluarga);
+            } else {
+                wadahDaftar.innerHTML = `<div class="text-center mt-12 text-gray-400">Data gagal dimuat. Coba kembali ke Beranda dulu Om.</div>`;
             }
-
-            dataSiap = true; 
-            inputCari.disabled = false;
-            inputCari.placeholder = "Cari nama anggota keluarga...";
-            renderData(daftarKeluarga);
         }
 
         async function sinkronisasiDataCloud() {
             try {
                 const response = await fetch(URL_API + "?t=" + Date.now());
                 const resJson = await response.json();
-                if (resJson && resJson.keluarga) {
+                if (resJson && (resJson.keluarga || Array.isArray(resJson))) {
                     localStorage.setItem('dataCloud', JSON.stringify(resJson));
+                    console.log("Sinkronisasi Berhasil!");
                 }
             } catch (err) {
                 console.error("Gagal sinkronisasi:", err);
@@ -178,24 +171,17 @@
 
         function renderData(data, isSearching = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
-            
-            if (!data || (data.length === 0 && !isSearching)) {
-                wadahDaftar.innerHTML = `<div class="text-center mt-12 px-6"><p class="text-gray-500">Data belum tersedia.</p></div>`;
-                return;
-            }
+            if (!data || (data.length === 0 && !isSearching)) return;
 
             if (data.length === 0 && isSearching) {
-                wadahDaftar.innerHTML = `
-                    <div class="text-center mt-12 px-6">
-                        <p class="text-gray-400 italic text-sm">Nama atau lokasi tidak ditemukan.</p>
-                    </div>`;
+                wadahDaftar.innerHTML = `<p class="text-center text-gray-400 mt-10 text-sm italic">Nama tidak ditemukan.</p>`;
                 return;
             }
 
             const dataTerurut = [...data].sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
             const htmlKartu = dataTerurut.map(anggota => {
                 let sumberFoto = anggota.foto;
-                if (!sumberFoto || sumberFoto === "null" || sumberFoto.length < 20) {
+                if (!sumberFoto || sumberFoto.length < 20) {
                     sumberFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(anggota.nama)}&background=00e5ff&color=fff`;
                 }
                 return `
@@ -214,16 +200,11 @@
         }
 
         function filterAnggota() {
-            const dataRaw = localStorage.getItem('dataCloud');
-            console.log("Isi mentah dataCloud di storage:", dataRaw ? "Ada Isinya" : "KOSONG TOTAL");
-            if (!dataSiap) return; // JANGAN cari kalau data belum siap di memori
+            if (!dataSiap) return;
 
             const inputElemen = document.getElementById('searchInput');
             const statusElemen = document.getElementById('statusPencarian');
             const input = inputElemen.value.toLowerCase().trim();
-
-            const daftarKeluarga = getDaftarDariStorage();
-            console.log("Berhasil mengambil " + daftarKeluarga.length + " anggota untuk difilter.");
             
             if (input.length > 0) {
                 if (statusElemen) statusElemen.classList.remove('hidden');
@@ -233,7 +214,6 @@
                 return;
             }
 
-            // Tunggu user selesai mengetik (jeda 500ms)
             clearTimeout(timeoutPencarian);
             timeoutPencarian = setTimeout(() => {
                 const daftarKeluarga = getDaftarDariStorage();
@@ -249,11 +229,7 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', filterAnggota);
-        document.addEventListener('DOMContentLoaded', muatDaftarAnggota);
-
-        window.onload = () => {
-            muatDaftarAnggota();
-        };
+        window.addEventListener('load', muatDaftarAnggota);
     </script>
 </body>
 </html>
