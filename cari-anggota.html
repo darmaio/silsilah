@@ -232,11 +232,9 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', filterAnggota);
-        window.addEventListener('load', muatDaftarAnggota);
-
-        window.onload = () => {
+        document.addEventListener('DOMContentLoaded', () => {
             muatDaftarAnggota();
-        };
+        });
     </script>
 </body>
 </html>
