@@ -9,7 +9,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-4RDDKDQNKB');
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,49 +27,23 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         .btn-back {
-            position: absolute;
-            left: 15px;
-            top: 35px;
+            position: absolute; left: 15px; top: 35px;
             background: rgba(39, 38, 38, 0.2);
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .search-container {
-            margin-top: 20px;
-            padding: 0 24px;
+            border-radius: 50%; width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; text-decoration: none; font-weight: bold;
         }
         .search-input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 25px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            outline: none;
+            width: 100%; padding: 12px 20px; border-radius: 25px;
+            border: 1px solid #e0e0e0; outline: none; transition: 0.3s;
         }
-        .search-input:focus {
-            border-color: #00e5ff;
-        }
+        .search-input:focus { border-color: #00e5ff; box-shadow: 0 0 10px rgba(0,229,255,0.1); }
         .member-card {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 12px;
-            border: 1px solid #f0f0f0;
-            transition: transform 0.2s;
+            display: flex; align-items: center; padding: 12px;
+            background: white; border-radius: 15px; margin-bottom: 12px;
+            border: 1px solid #f0f0f0; transition: transform 0.2s;
         }
-        .member-card:active {
-            transform: scale(0.98);
-            background-color: #f9f9f9;
-        }
+        .member-card:active { transform: scale(0.98); background-color: #f9f9f9; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -80,15 +53,15 @@
         <h1 class="text-xl font-bold">Cari Anggota</h1>
     </div>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" onkeyup="filterAnggota()" placeholder="Cari nama anggota keluarga..." class="search-input">
+    <div class="mt-5 px-6">
+        <input type="text" id="searchInput" oninput="filterAnggota()" placeholder="Ketik nama (Agus, Andi, dll)..." class="search-input">
     </div>
 
     <div id="wadahDaftar" class="p-6 mt-2">
         </div>
 
-    <script src="config.js"></script> <script>
-        // 1. Ambil data dari localStorage
+    <script src="config.js"></script> 
+    <script>
         function getDaftarDariStorage() {
             const dataRaw = localStorage.getItem('dataCloud');
             if (dataRaw) {
@@ -100,39 +73,36 @@
             return [];
         }
 
-        // 2. Fungsi Render: Tampilkan Kartu
-        // Saya tambah parameter 'sedangCari' supaya bisa bedakan pesan error
-        function renderData(data, sedangCari = false) {
+        // FUNGSI RENDER (SUDAH DIPERBAIKI)
+        function renderData(data, sedangMencari = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
             
-            // JIKA DATA TIDAK ADA
+            // Jika pencarian tidak membuahkan hasil
             if (!data || data.length === 0) {
-                if (sedangCari) {
-                    // Jika user lagi ngetik tapi nggak ketemu
+                if (sedangMencari) {
+                    const kataKunci = document.getElementById('searchInput').value;
                     wadahDaftar.innerHTML = `
                         <div class="text-center mt-12 px-6">
-                            <p class="text-gray-400 italic">Nama "${document.getElementById('searchInput').value}" tidak ditemukan...</p>
+                            <p class="text-gray-400 italic font-medium">Nama "${kataKunci}" tidak ditemukan dalam silsilah.</p>
                         </div>`;
                 } else {
-                    // Jika baru buka halaman tapi data memang kosong (masalah koneksi/sinkron)
                     wadahDaftar.innerHTML = `
                         <div class="text-center mt-12 px-6">
                             <div class="bg-red-50 p-6 rounded-2xl border-2 border-dashed border-red-200">
-                                <p class="text-gray-500 italic">Data keluarga belum sinkron.</p>
-                                <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Sinkron Sekarang</button>
+                                <p class="text-gray-500 italic">Data kosong atau gagal sinkron.</p>
+                                <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Refresh Data</button>
                             </div>
                         </div>`;
                 }
                 return;
             }
 
-            // JIKA DATA ADA, TAMPILKAN KARTU
             wadahDaftar.innerHTML = ''; 
             const dataTerurut = [...data].sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
 
             dataTerurut.forEach(anggota => {
                 let sumberFoto = anggota.foto;
-                if (!sumberFoto || sumberFoto === "null" || sumberFoto === "" || sumberFoto.length < 20) {
+                if (!sumberFoto || sumberFoto.length < 20) {
                     sumberFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(anggota.nama)}&background=00e5ff&color=fff`;
                 }
 
@@ -141,12 +111,11 @@
                     : "Data kelahiran belum diisi";
 
                 wadahDaftar.innerHTML += `
-                    <div class="member-card shadow-sm cursor-pointer hover:bg-gray-50 flex items-center p-4 bg-white mb-3 rounded-2xl border border-gray-100" 
-                        onclick="window.location.href='tambah-anggota.html?id=${anggota.id}'">
-                        <img src="${sumberFoto}" class="w-14 h-14 rounded-full object-cover border-2 border-[#00e5ff] shadow-sm mr-4">
+                    <div class="member-card shadow-sm cursor-pointer" onclick="window.location.href='tambah-anggota.html?id=${anggota.id}'">
+                        <img src="${sumberFoto}" class="w-14 h-14 rounded-full object-cover border-2 border-[#00e5ff] mr-4">
                         <div class="flex-1">
                             <h4 class="font-bold text-gray-800 text-md leading-tight">${anggota.nama}</h4>
-                            <p class="text-[10px] text-[#00e5ff] font-semibold mt-0.5 uppercase tracking-wide">${infoLahir}</p>
+                            <p class="text-[10px] text-[#00acc1] font-bold mt-0.5 uppercase tracking-wide">${infoLahir}</p>
                             <p class="text-xs text-gray-400 mt-1 italic leading-tight">📍 ${anggota.domisili || 'Lokasi tidak diisi'}</p>
                         </div>
                         <div class="text-gray-300 ml-2">❯</div>
@@ -154,31 +123,31 @@
             });
         }
 
-        // 3. Fitur Cari (Sudah diperbaiki logikanya)
+        // FUNGSI CARI (SUDAH DIPERBAIKI)
         function filterAnggota() {
             const input = document.getElementById('searchInput').value.toLowerCase().trim();
             const dataLengkap = getDaftarDariStorage();
             
-            // Kalau kotak pencarian kosong, tampilkan semua data aslinya
             if (input === "") {
                 renderData(dataLengkap, false);
                 return;
             }
 
-            // Filter data berdasarkan Nama atau Domisili
-            const hasilFilter = dataLengkap.filter(anggota => {
-                const namaAman = (anggota.nama || "").toLowerCase();
-                const domisiliAman = (anggota.domisili || "").toLowerCase();
-                return namaAman.includes(input) || domisiliAman.includes(input);
+            const hasilFilter = dataLengkap.filter(a => {
+                // Pastikan variabel nama tidak null/undefined sebelum di-lowercase
+                const nama = (a.nama || "").toLowerCase();
+                const domisili = (a.domisili || "").toLowerCase();
+                return nama.includes(input) || domisili.includes(input);
             });
 
-            // Jalankan render dengan status 'sedangCari = true'
+            // Kirim 'true' agar renderData tahu ini sedang memfilter
             renderData(hasilFilter, true);
         }
 
         async function muatDaftarAnggota() {
             let daftar = getDaftarDariStorage();
             if (daftar.length === 0) {
+                document.getElementById('wadahDaftar').innerHTML = `<p class="text-center text-gray-400 animate-pulse mt-10">Menghubungkan ke Cloud...</p>`;
                 await sinkronisasiDataCloud();
                 daftar = getDaftarDariStorage();
             }
@@ -192,10 +161,9 @@
                 if (resJson && resJson.keluarga) {
                     localStorage.setItem('dataCloud', JSON.stringify(resJson));
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("Gagal sinkron:", err); }
         }
 
-        // Jalankan saat halaman dibuka
         window.onload = muatDaftarAnggota;
     </script>
 </body>
