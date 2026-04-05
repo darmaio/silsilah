@@ -76,21 +76,26 @@
         // FUNGSI RENDER (SUDAH DIPERBAIKI)
         function renderData(data, sedangMencari = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
-            
-            // Jika pencarian tidak membuahkan hasil
+            const inputSekarang = document.getElementById('searchInput').value.trim();
+
+            // Jika input kosong, jangan tampilkan pesan error, tampilkan semua data
+            if (inputSekarang === "" && (!data || data.length === 0)) {
+                 // Coba ambil ulang dari storage kalau benar-benar hilang
+                 data = getDaftarDariStorage();
+            }
+
             if (!data || data.length === 0) {
-                if (sedangMencari) {
-                    const kataKunci = document.getElementById('searchInput').value;
+                if (sedangMencari && inputSekarang !== "") {
                     wadahDaftar.innerHTML = `
                         <div class="text-center mt-12 px-6">
-                            <p class="text-gray-400 italic font-medium">Nama "${kataKunci}" tidak ditemukan dalam silsilah.</p>
+                            <p class="text-gray-400 italic font-medium">Nama "${inputSekarang}" tidak ditemukan.</p>
                         </div>`;
                 } else {
                     wadahDaftar.innerHTML = `
                         <div class="text-center mt-12 px-6">
                             <div class="bg-red-50 p-6 rounded-2xl border-2 border-dashed border-red-200">
-                                <p class="text-gray-500 italic">Data kosong atau gagal sinkron.</p>
-                                <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Refresh Data</button>
+                                <p class="text-gray-500 italic">Klik tombol di bawah untuk muat ulang data dari Cloud.</p>
+                                <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Sinkron Data</button>
                             </div>
                         </div>`;
                 }
@@ -124,6 +129,7 @@
         }
 
         // FUNGSI CARI (SUDAH DIPERBAIKI)
+        // 3. Fitur Cari (Versi Super Akurat)
         function filterAnggota() {
             const input = document.getElementById('searchInput').value.toLowerCase().trim();
             const dataLengkap = getDaftarDariStorage();
@@ -134,9 +140,14 @@
             }
 
             const hasilFilter = dataLengkap.filter(a => {
-                // Pastikan variabel nama tidak null/undefined sebelum di-lowercase
-                const nama = (a.nama || "").toLowerCase();
-                const domisili = (a.domisili || "").toLowerCase();
+                // Ambil nilai nama dengan mencoba berbagai kemungkinan nama kolom
+                // Karena kadang di Google Sheet kolomnya pakai huruf Besar/Kecil berbeda
+                const namaAsli = a.nama || a.Nama || a.nama_lengkap || a["Nama Lengkap"] || "";
+                const domisiliAsli = a.domisili || a.Domisili || "";
+
+                const nama = namaAsli.toString().toLowerCase();
+                const domisili = domisiliAsli.toString().toLowerCase();
+                
                 return nama.includes(input) || domisili.includes(input);
             });
 
