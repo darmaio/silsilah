@@ -87,6 +87,11 @@
     <div id="wadahDaftar" class="p-6 mt-2">
         </div>
 
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Cari nama anggota keluarga..." class="search-input">
+        <div id="statusPencarian" class="text-center mt-2 text-[10px] text-cyan-600 font-bold hidden"></div>
+    </div>
+
     <script src="config.js"></script> <script>
         document.getElementById('btnBack').addEventListener('click', () => {
             window.location.href = 'index.html';
@@ -107,16 +112,17 @@
             const wadahDaftar = document.getElementById('wadahDaftar');
             let daftarKeluarga = getDaftarDariStorage();
 
-            // JIKA DATA KOSONG (setelah clear cache)
+            // Jika data benar-benar kosong di memori HP
             if (daftarKeluarga.length === 0) {
                 wadahDaftar.innerHTML = `
                     <div class="text-center mt-12 px-6">
-                        <p class="text-gray-400 animate-pulse">Sedang sinkronisasi data keluarga...</p>
+                        <p class="text-cyan-500 font-bold animate-bounce text-sm">
+                           <i class="fas fa-cloud-download-alt mr-2"></i> Menghubungkan ke Google Sheets...
+                        </p>
                     </div>`;
                 
-                // Panggil fungsi tarik data dari internet
                 await sinkronisasiDataCloud();
-                daftarKeluarga = getDaftarDariStorage(); // Ambil lagi setelah download selesai
+                daftarKeluarga = getDaftarDariStorage();
             }
 
             renderData(daftarKeluarga);
@@ -192,28 +198,45 @@
         }
 
         // 5. Fitur Cari
+        let timeoutPencarian = null;
+
         function filterAnggota() {
-            // Gunakan .trim() untuk membuang spasi di awal/akhir yang sering tidak sengaja terketik
-            const input = document.getElementById('searchInput').value.toLowerCase().trim();
-            const daftarKeluarga = getDaftarDariStorage();
+            const inputElemen = document.getElementById('searchInput');
+            const statusElemen = document.getElementById('statusPencarian');
+            const input = inputElemen.value.toLowerCase().trim();
             
-            // Jika kotak pencarian kosong, tampilkan semua data
-            if (input === "") {
+            // Tampilkan status "Sedang memeriksa"
+            if (input.length > 0) {
+                statusElemen.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Sedang memeriksa daftar anggota...`;
+                statusElemen.classList.remove('hidden');
+            } else {
+                statusElemen.classList.add('hidden');
+                const daftarKeluarga = getDaftarDariStorage();
                 renderData(daftarKeluarga, false);
                 return;
             }
 
-            const hasilFilter = daftarKeluarga.filter(anggota => {
-                // Pastikan variabel ada nilainya sebelum di-lowercase agar tidak error
-                const nama = (anggota.nama || "").toLowerCase();
-                const domisili = (anggota.domisili || "").toLowerCase();
-                
-                return nama.includes(input) || domisili.includes(input);
-            });
+            // Hapus timeout sebelumnya (Debounce) agar tidak berat di HP
+            clearTimeout(timeoutPencarian);
 
-            // Kirim isSearching = true agar tidak muncul kotak merah
-            renderData(hasilFilter, true); 
+            // Beri jeda 300ms sebelum mulai mencari
+            timeoutPencarian = setTimeout(() => {
+                const daftarKeluarga = getDaftarDariStorage();
+                
+                const hasilFilter = daftarKeluarga.filter(anggota => {
+                    const nama = (anggota.nama || "").toLowerCase();
+                    const domisili = (anggota.domisili || "").toLowerCase();
+                    return nama.includes(input) || domisili.includes(input);
+                });
+
+                // Sembunyikan status setelah selesai
+                statusElemen.classList.add('hidden');
+                
+                // Tampilkan hasil
+                renderData(hasilFilter, true);
+            }, 300); 
         }
+
         // Tambahkan ini di bagian bawah script agar lebih peka di HP
         document.getElementById('searchInput').addEventListener('input', filterAnggota);
 
