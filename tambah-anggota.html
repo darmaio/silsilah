@@ -246,320 +246,106 @@
 
     <script src="config.js"></script> 
     <script>
-        // 1. Ambil ID dari alamat URL (misal: ?id=10)
+        // 1. Ambil Parameter ID dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const idAnggotaUrl = urlParams.get('id');
 
-        // 2. Fungsi untuk mengisi form otomatis jika ada ID
-        function isiFormOtomatis() {
-            if (!idAnggotaUrl) return; // Jika tidak ada ID (berarti tambah baru), stop.
+        // 2. Fungsi Ambil Data & Isi Form (Mode Edit)
+        function cekModeEdit() {
+            if (!idAnggotaUrl) return; // Jika tidak ada ID, anggap tambah baru
 
             const dataRaw = localStorage.getItem('dataCloud');
             if (dataRaw) {
                 const resJson = JSON.parse(dataRaw);
                 const daftarKeluarga = resJson.keluarga || [];
-                
-                // Cari data anggota yang ID-nya cocok
                 const anggota = daftarKeluarga.find(a => a.id == idAnggotaUrl);
 
                 if (anggota) {
-                    console.log("Data ditemukan, mengisi form...");
-                    // Isi Nama
-                    if(document.getElementById('namaLengkap')) 
-                        document.getElementById('namaLengkap').value = anggota.nama || "";
-                    // Isi Domisili/Alamat
-                    if(document.getElementById('domisili')) 
-                        document.getElementById('domisili').value = anggota.domisili || "";
-                    // Isi Status (Sesuaikan ID element-nya)
-                    if(document.getElementById('statusKeluarga')) 
-                        document.getElementById('statusKeluarga').value = anggota.status || "";
+                    // Isi input form
+                    document.getElementById('namaLengkap').value = anggota.nama || "";
+                    document.getElementById('domisili').value = anggota.domisili || "";
                     
-                    // Ganti Judul Halaman jadi "Edit" bukan "Tambah"
+                    // Ganti teks Header
                     const judulHalaman = document.querySelector('.header-curve h1');
                     if(judulHalaman) judulHalaman.innerText = "Edit Anggota";
-                } else {
-                    console.error("Anggota dengan ID tersebut tidak ditemukan di storage.");
+                    
+                    // Jika ada foto, tampilkan preview-nya
+                    if (anggota.foto && anggota.foto.length > 20) {
+                        const previewImage = document.getElementById('previewImage');
+                        const defaultIcon = document.getElementById('defaultIcon');
+                        previewImage.src = anggota.foto;
+                        previewImage.classList.remove('hidden');
+                        defaultIcon.classList.add('hidden');
+                    }
                 }
             }
         }
 
-        // Jalankan saat halaman selesai dimuat
-        document.addEventListener('DOMContentLoaded', isiFormOtomatis);
-
-        const fileInput = document.getElementById('fileInput');
-        const previewImage = document.getElementById('profilePreview');
-        const defaultIcon = document.getElementById('defaultIcon');
-        const statusSelect = document.getElementById('statusKekerabatan');
-        const groupRelasi = document.getElementById('groupRelasi');
-        const groupPasangan = document.getElementById('groupPasangan');
-        
-        const idAnggotaEdit = urlParams.get('id');
-
-        // 1. Fungsi Pembantu: Ambil data dari key 'dataCloud'
-        function ambilDataLokal() {
-            const data = localStorage.getItem('dataCloud');
-            return data ? JSON.parse(data) : { keluarga: [], iklan: [] };
+        // 3. Fungsi Kapitalisasi Otomatis (RT/RW/Romawi)
+        function buatKapital(str) {
+            let hasil = str.replace(/\b\w/g, char => char.toUpperCase());
+            const singkatanWajib = ["Rt", "Rw", "Diy", "Ii", "Iii", "Iv", "Vi", "Vii", "Viii", "Ix", "Xi", "Xii"];
+            singkatanWajib.forEach(kata => {
+                const regex = new RegExp("\\b" + kata + "\\b", "gi");
+                hasil = hasil.replace(regex, kata.toUpperCase());
+            });
+            return hasil;
         }
 
-        window.onload = function() {
-            updateDatalistNama(); 
+        // 4. Inisialisasi saat Halaman Siap
+        document.addEventListener('DOMContentLoaded', () => {
+            cekModeEdit();
 
-            if (idAnggotaEdit) {
-                document.getElementById('judulHalaman').innerText = "Edit Anggota";
-                document.getElementById('btnSimpan').innerText = "SIMPAN PERUBAHAN";
-                document.getElementById('btnHapus').classList.remove('hidden');
-                muatDataUntukEdit(idAnggotaEdit);
-            }
-        };
+            // Pasang Listener Kapitalisasi
+            const inputNama = document.getElementById('namaLengkap');
+            const inputAlamat = document.getElementById('domisili');
 
-        // Logika Tampil/Sembunyi Input Relasi
-        statusSelect.addEventListener('change', function() {
-            const status = this.value;
-            groupRelasi.classList.toggle('hidden', status !== 'anak');
-            // Pasangan biasanya selalu ditampilkan atau opsional
+            [inputNama, inputAlamat].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', function() {
+                        const start = this.selectionStart;
+                        this.value = buatKapital(this.value);
+                        this.setSelectionRange(start, start);
+                    });
+                }
+            });
         });
 
-        function muatDataUntukEdit(id) {
-            const dataFull = ambilDataLokal();
-            const data = dataFull.keluarga.find(a => a.id == id);
-
-            if (data) {
-                document.getElementById('namaLengkap').value = data.nama || "";
-                document.getElementById('domisili').value = data.domisili || "";
-                document.getElementById('tempatLahir').value = data.tempatLahir || "";
-                document.getElementById('tanggalLahir').value = data.tanggalLahir || "";
-                
-                // ISI STATUS (Pasangan/Anak/None)
-                statusSelect.value = data.status || "none";
-                
-                // PAKSA JALANKAN LOGIKA TAMPIL/SEMBUNYI
-                groupRelasi.classList.toggle('hidden', statusSelect.value !== 'anak');
-
-                // SET ID KE HIDDEN INPUT
-                document.getElementById('parentID').value = data.parentID || "";
-                document.getElementById('idPasangan').value = data.idPasangan || "";
-
-                // CARI NAMA ORANG TUA (berdasarkan parentID)
-                if (data.parentID) {
-                    const ortu = dataFull.keluarga.find(o => o.id == data.parentID);
-                    if (ortu) document.getElementById('inputCariParent').value = ortu.nama;
-                }
-
-                // CARI NAMA PASANGAN (berdasarkan idPasangan)
-                if (data.idPasangan) {
-                    const pasangan = dataFull.keluarga.find(o => o.id == data.idPasangan);
-                    if (pasangan) document.getElementById('inputCariPasangan').value = pasangan.nama;
-                }
-
-                // TAMPILKAN FOTO
-                if (data.foto && data.foto.startsWith('data:image')) {
-                    previewImage.src = data.foto;
-                    previewImage.classList.remove('hidden');
-                    defaultIcon.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateDatalistNama() {
-            const dataFull = ambilDataLokal();
-            const datalist = document.getElementById('daftarKeluargaCari');
-            datalist.innerHTML = "";
-            
-            dataFull.keluarga.sort((a, b) => a.nama.localeCompare(b.nama));
-            dataFull.keluarga.forEach(orang => {
-                if (orang.id != idAnggotaEdit) {
-                    const option = document.createElement('option');
-                    option.value = orang.nama; 
-                    datalist.appendChild(option);
-                }
-            });
-        }
-
-        // Sinkronisasi Nama -> ID
-        function sinkronkanInput(idInputText, idInputHidden) {
-            const txtInput = document.getElementById(idInputText);
-            const hiddenID = document.getElementById(idInputHidden);
-
-            txtInput.addEventListener('input', function() {
-                const val = this.value;
-                const dataFull = ambilDataLokal();
-                const ketemu = dataFull.keluarga.find(o => o.nama.toLowerCase() === val.toLowerCase());
-
-                if (ketemu) {
-                    hiddenID.value = ketemu.id;
-                    this.style.borderColor = "#00e5ff"; 
-                } else {
-                    hiddenID.value = ""; 
-                    this.style.borderColor = val.length > 0 ? "orange" : ""; 
-                }
-            });
-        }
-
-        sinkronkanInput('inputCariParent', 'parentID');
-        sinkronkanInput('inputCariPasangan', 'idPasangan');
-
-        async function simpanAnggota() {
-            const currentId = idAnggotaEdit ? idAnggotaEdit : Date.now().toString();
-            let fotoFinal = previewImage.src;
-
-            // Jika foto kosong/default, berikan SVG default
-            if (previewImage.classList.contains('hidden') || !fotoFinal.startsWith('data:image')) {
-                fotoFinal = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><rect width='24' height='24' fill='%2300e5ff'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>`;
-            }
-
-            const dataBaru = {
-                action: "SAVE",
-                id: currentId,
-                nama: document.getElementById('namaLengkap').value,
-                parentID: document.getElementById('parentID').value,
-                status: statusSelect.value,
-                domisili: document.getElementById('domisili').value,
-                foto: fotoFinal,
-                idPasangan: document.getElementById('idPasangan').value,
-                tempatLahir: document.getElementById('tempatLahir').value,
-                tanggalLahir: document.getElementById('tanggalLahir').value
-            };
-
-            if (!dataBaru.nama) return alert("Nama harus diisi!");
-
-            // SIMPAN KE LOKAL (dataCloud)
-            let dataFull = ambilDataLokal();
-            const index = dataFull.keluarga.findIndex(a => a.id == currentId);
-            if (index > -1) dataFull.keluarga[index] = dataBaru; else dataFull.keluarga.push(dataBaru);
-            localStorage.setItem('dataCloud', JSON.stringify(dataFull));
-
-            // SIMPAN KE CLOUD
-            try {
-                const btn = document.getElementById('btnSimpan');
-                btn.innerText = "MENGIRIM...";
-                btn.disabled = true;
-
-                await fetch(URL_API, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataBaru)
-                });
-                
-                alert("Berhasil disimpan!");
-                window.location.href = 'index.html';
-            } catch (e) {
-                alert("Tersimpan di lokal, gagal sinkron Cloud.");
+        // 5. Tombol Kembali
+        document.getElementById('btnBack').addEventListener('click', () => {
+            if (idAnggotaUrl) {
+                window.location.href = 'cari-anggota.html';
+            } else {
                 window.location.href = 'index.html';
             }
-        }
+        });
 
-        async function hapusAnggota() {
-            const idTerpilih = idAnggotaEdit;
-            if (!idTerpilih) return;
-
-            if (confirm("Yakin mau hapus data ini?")) {
-                const btnHapus = document.getElementById('btnHapus');
-                btnHapus.innerText = "MENGHAPUS...";
-                btnHapus.disabled = true;
-
-                try {
-                    // Kita kirim action & id lewat URL biar GAS gampang bacanya via e.parameter
-                    const urlHapus = `${URL_API}?action=delete&id=${idTerpilih}`;
-                    
-                    // Gunakan method POST tapi biarkan datanya di URL
-                    await fetch(urlHapus, { 
-                        method: 'POST',
-                        mode: 'no-cors' // Supaya tidak kena blokir CORS browser
-                    });
-
-                    // Sisi Lokal: Hapus dari localStorage
-                    let dataFull = ambilDataLokal();
-                    dataFull.keluarga = dataFull.keluarga.filter(a => a.id != idTerpilih);
-                    localStorage.setItem('dataCloud', JSON.stringify(dataFull));
-
-                    alert("Data berhasil dihapus!");
-                    window.location.href = 'index.html'; 
-
-                } catch (e) {
-                    console.error(e);
-                    alert("Gagal sinkron Cloud. Cek internet.");
-                    btnHapus.disabled = false;
-                    btnHapus.innerText = "HAPUS ANGGOTA";
-                }
-            }
-        }
-
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
+        // 6. Logika Upload Foto (Kompresi)
+        document.getElementById('fotoAnggota').addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    // PROSES KOMPRESI DIMULAI
+                reader.onload = function(event) {
                     const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
+                    img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 400; // Ukuran cukup untuk profil silsilah
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-
+                        let width = 300; 
+                        let height = (img.height / img.width) * width;
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-
-                        // Ubah ke format JPEG dengan kualitas 70% agar file sangat ringan
+                        
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        
-                        previewImage.src = dataUrl;
-                        previewImage.classList.remove('hidden');
-                        defaultIcon.classList.add('hidden');
-                        
-                        console.log("Foto berhasil dikompres!");
+                        document.getElementById('previewImage').src = dataUrl;
+                        document.getElementById('previewImage').classList.remove('hidden');
+                        document.getElementById('defaultIcon').classList.add('hidden');
                     };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             }
         });
-
-        function buatKapital(teks) {
-            // 1. Standar dulu: kapital awal kata (misal: "rt. 02" -> "Rt. 02")
-            let hasil = teks.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-
-            // 2. Daftar kata yang WAJIB huruf besar semua (Singkatan & Romawi)
-            const singkatanWajib = ["Rt", "Rw", "Diy", "Ii", "Iii", "Iv", "Vi", "Vii", "Viii", "Ix", "Xi", "Xii"];
-            
-            // 3. Kita sapu bersih kata yang salah tadi
-            singkatanWajib.forEach(kata => {
-                // \b artinya batas kata, supaya kalau ada nama "Arti" tidak berubah jadi "ARTi"
-                const regex = new RegExp("\\b" + kata + "\\b", "gi");
-                
-                // Kita paksa jadi huruf besar semua (RT, RW, DIY, II, dst)
-                hasil = hasil.replace(regex, kata.toUpperCase());
-            });
-
-            return hasil;
-        }
-
-        // Ganti bagian ini ya Om, perhatikan ID 'namaLengkap'
-        const inputNama = document.getElementById('namaLengkap'); // Tadi Om tulis 'nama'
-        const inputAlamat = document.getElementById('domisili');
-
-        [inputNama, inputAlamat].forEach(input => {
-            if (input) {
-                input.addEventListener('input', function() {
-                    const start = this.selectionStart;
-                    
-                    // PERBAIKAN: Panggil fungsi buatKapital(this.value) 
-                    // supaya RT, RW, dan Romawi ikut terproses
-                    this.value = buatKapital(this.value);
-                    
-                    this.setSelectionRange(start, start);
-                });
-            }
-        });
-
     </script>
 </body>
 </html>
