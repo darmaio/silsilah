@@ -1,93 +1,319 @@
-<script>
-        // 1. Ambil ID dari alamat URL (?id=...)
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Tambah Anggota - Silsilah Bani Muntari</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4RDDKDQNKB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-4RDDKDQNKB');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .header-curve {
+            background: linear-gradient(135deg, #00e5ff 0%, #00acc1 100%);
+            height: 90px;
+            border-bottom-left-radius: 10% 30px;
+            border-bottom-right-radius: 10% 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .btn-back {
+            position: absolute;
+            left: 15px;
+            top: 35px;
+            background: rgba(39, 38, 38, 0.2);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }        
+        .input-outline {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            outline: none;
+        }
+        .input-outline:focus { border-color: #00e5ff; border-width: 2px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .profile-pic-container {
+            width: 150px;
+            height: 150px;
+            background-color: #00e5ff;
+            border-radius: 50%;
+            position: relative;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .camera-badge {
+            position: absolute;
+            top: 5px;
+            right: -15px;
+            background-color: #00c853;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .btn-simpan {
+            background-color: #00e5ff;
+            color: white;
+            padding: 15px;
+            border-radius: 30px;
+            font-weight: bold;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-hapus {
+            border: 2px solid #ff5252;
+            color: #ff5252;
+            padding: 15px;
+            border-radius: 30px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="header-curve">
+        <button onclick="window.history.back()" class="btn-back">←</button>
+        <h1 id="judulHalaman" class="text-xl font-bold">Tambah Anggota</h1>
+    </div>
+
+    <div class="p-6 space-y-5">
+        
+        <div class="input-group">
+            <input type="text" id="namaLengkap" placeholder="Nama Lengkap" class="input-outline">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="tempatLahir" list="list-kota" placeholder="Tempat Lahir" class="input-outline">
+            
+            <datalist id="list-kota">
+                <option value="Kota Yogyakarta">
+                <option value="Kab. Bantul">
+                <option value="Kab. Gunungkidul">
+                <option value="Kab. Kulon Progo">
+                <option value="Kab. Sleman">
+
+                <option value="Kota Semarang">
+                <option value="Kota Salatiga"> 
+                <option value="Kota Magelang">
+                <option value="Kab. Magelang">
+                <option value="Kota Surakarta">
+                <option value="Kab. Boyolali">
+                <option value="Kab. Klaten">
+                <option value="Kab. Purworejo">
+                <option value="Kab. Temanggung">
+                <option value="Kab. Wonosobo">
+                <option value="Kab. Kebumen">
+                <option value="Kab. Banyumas">
+                <option value="Kab. Cilacap">
+                <option value="Kab. Brebes">
+                <option value="Kab. Tegal">
+                <option value="Kab. Pemalang">
+                <option value="Kab. Pekalongan">
+                <option value="Kab. Batang">
+                <option value="Kab. Kendal">
+                <option value="Kab. Demak">
+                <option value="Kab. Kudus">
+                <option value="Kab. Jepara">
+                <option value="Kab. Pati">
+                <option value="Kab. Rembang">
+                <option value="Kab. Blora">
+                <option value="Kab. Grobogan">
+                <option value="Kab. Sragen">
+                <option value="Kab. Karanganyar">
+                <option value="Kab. Sukoharjo">
+                <option value="Kab. Wonogiri">
+
+                <option value="Kota Surabaya">
+                <option value="Kota Malang">
+                <option value="Kab. Malang">
+                <option value="Kota Kediri">
+                <option value="Kab. Kediri">
+                <option value="Kota Madiun">
+                <option value="Kab. Madiun">
+                <option value="Kab. Pacitan">
+                <option value="Kab. Ponorogo">
+                <option value="Kab. Trenggalek">
+                <option value="Kab. Tulungagung">
+                <option value="Kab. Blitar">
+                <option value="Kab. Nganjuk">
+                <option value="Kab. Jombang">
+                <option value="Kab. Mojokerto">
+                <option value="Kab. Sidoarjo">
+                <option value="Kab. Gresik">
+                <option value="Kab. Lamongan">
+                <option value="Kab. Tuban">
+                <option value="Kab. Bojonegoro">
+                <option value="Kab. Ngawi">
+                <option value="Kab. Magetan">
+
+                <option value="Kota Bandung">
+                <option value="Kab. Bandung">
+                <option value="Kota Bekasi">
+                <option value="Kab. Bekasi">
+                <option value="Kota Bogor">
+                <option value="Kab. Bogor">
+                <option value="Kota Depok">
+                <option value="Kota Serang">
+                <option value="Kota Tangerang">
+                
+                </datalist>
+        </div>
+
+        <div class="input-group relative">
+            <input type="date" id="tanggalLahir" class="input-outline">
+            <span class="absolute right-4 top-3 text-xl">📅</span>
+        </div>
+
+        <div class="input-group">
+            <textarea id="domisili" placeholder="Domisili" rows="4" class="input-outline"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label class="text-xs text-gray-500 ml-2">Hubungan Sebagai:</label>
+            <select id="statusKekerabatan" class="input-outline bg-white">
+                <option value="none">Kepala Keluarga / Orang Tua Utama</option>
+                <option value="pasangan">Pasangan (Suami/Istri) dari...</option>
+                <option value="anak">Anak dari...</option>
+            </select>
+        </div>
+
+        <div id="groupRelasi" class="input-group hidden">
+            <label class="text-xs text-gray-500 ml-2">Anak dari... atau Pasangan (Suami/Istri) dari... :</label>
+            <input type="text" id="inputCariParent" list="daftarKeluargaCari" class="input-outline bg-white" placeholder="Ketik nama orang tua...">
+            <input type="hidden" id="parentID"> 
+        </div>
+
+        <div class="mb-4" id="groupPasangan">
+            <label class="block text-gray-600 text-sm font-semibold mb-2 ml-2">Pilih Pasangan (Suami/Istri)</label>
+            <input type="text" id="inputCariPasangan" list="daftarKeluargaCari" class="w-full p-4 bg-gray-50 rounded-xl border border-gray-100 outline-none focus:border-[#00e5ff] text-gray-700" placeholder="Ketik nama pasangan...">
+            <input type="hidden" id="idPasangan"> 
+            <p class="text-[10px] text-gray-400 mt-1 italic ml-2">*Kosongkan jika belum menikah / belum terdaftar.</p>
+        </div>
+
+        <datalist id="daftarKeluargaCari"></datalist>
+
+        <div class="profile-pic-container">
+            <img id="profilePreview" src="" class="hidden w-full h-full rounded-full object-cover border-4 border-white shadow-sm">
+            <div id="defaultIcon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+            <div class="camera-badge cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                </svg>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+        </div> 
+
+        <button type="button" id="btnSimpan" onclick="simpanAnggota()" class="btn-simpan active:scale-95 transition-transform">
+            SIMPAN DATA KE MEMORI
+        </button>
+
+        <button type="button" id="btnHapus" onclick="hapusAnggota()" class="btn-hapus hidden active:scale-95 transition-transform">
+            HAPUS ANGGOTA
+        </button>
+    </div>
+
+    <script src="config.js"></script> 
+    <script>
+        // 1. Ambil Parameter ID dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const idAnggotaUrl = urlParams.get('id');
 
-        // 2. Fungsi Ambil Data dari Storage (Helper)
-        function ambilDataLokal() {
-            try {
-                const raw = localStorage.getItem('dataCloud');
-                return raw ? JSON.parse(raw) : { keluarga: [] };
-            } catch (e) {
-                console.error("Gagal ambil data lokal", e);
-                return { keluarga: [] };
+        // 2. Fungsi Ambil Data & Isi Form (Mode Edit)
+        function cekModeEdit() {
+            if (!idAnggotaUrl) return; 
+
+            const dataRaw = localStorage.getItem('dataCloud');
+            if (dataRaw) {
+                const resJson = JSON.parse(dataRaw);
+                const daftarKeluarga = resJson.keluarga || [];
+                
+                // PERBAIKAN: Gunakan dua kali tanda sama dengan (==) agar angka 10 sama dengan teks "10"
+                // Dan kita pastikan id di-trim jika itu teks
+                const anggota = daftarKeluarga.find(a => String(a.id).trim() == String(idAnggotaUrl).trim());
+
+                if (anggota) {
+                    console.log("Data ditemukan:", anggota.nama);
+                    
+                    // Isi Nama
+                    const elNama = document.getElementById('namaLengkap');
+                    if(elNama) elNama.value = anggota.nama || "";
+
+                    // Isi Alamat/Domisili
+                    const elDomisili = document.getElementById('domisili');
+                    if(elDomisili) elDomisili.value = anggota.domisili || "";
+                    
+                    // Ganti Judul Header
+                    const judulHalaman = document.querySelector('.header-curve h1');
+                    if(judulHalaman) judulHalaman.innerText = "Edit Anggota";
+
+                    // Tampilkan Foto jika ada
+                    if (anggota.foto && anggota.foto.length > 20) {
+                        const previewImage = document.getElementById('previewImage');
+                        const defaultIcon = document.getElementById('defaultIcon');
+                        previewImage.src = anggota.foto;
+                        previewImage.classList.remove('hidden');
+                        defaultIcon.classList.add('hidden');
+                    }
+                } else {
+                    console.error("ID tidak ditemukan di daftar keluarga:", idAnggotaUrl);
+                }
+            } else {
+                console.error("Gudang data (dataCloud) kosong di storage.");
             }
         }
 
-        // 3. FUNGSI LENGKAP (Mode Edit)
-        function muatDataUntukEdit(id) {
-            const dataFull = ambilDataLokal();
-            if (!dataFull.keluarga) return;
-
-            const data = dataFull.keluarga.find(a => String(a.id) === String(id));
-
-            if (data) {
-                console.log("Memuat data edit untuk:", data.nama);
-                
-                // Fungsi pembantu agar tidak error jika ID HTML tidak ada
-                const isiInput = (idHtml, nilai) => {
-                    const el = document.getElementById(idHtml);
-                    if (el) el.value = nilai || "";
-                };
-
-                isiInput('namaLengkap', data.nama);
-                isiInput('domisili', data.domisili);
-                isiInput('tempatLahir', data.tempatLahir);
-                isiInput('tanggalLahir', data.tanggalLahir);
-                isiInput('parentID', data.parentID);
-                isiInput('idPasangan', data.idPasangan);
-                
-                // Logika Status & Relasi
-                const sSelect = document.getElementById('statusSelect');
-                const gRelasi = document.getElementById('groupRelasi');
-                if (sSelect) {
-                    sSelect.value = data.status || "none";
-                    if (gRelasi) {
-                        gRelasi.classList.toggle('hidden', data.status !== 'anak');
-                    }
-                }
-
-                // Cari Nama Orang Tua berdasarkan ID
-                if (data.parentID) {
-                    const ortu = dataFull.keluarga.find(o => String(o.id) === String(data.parentID));
-                    const inCariParent = document.getElementById('inputCariParent');
-                    if (ortu && inCariParent) inCariParent.value = ortu.nama;
-                }
-                
-                // Cari Nama Pasangan berdasarkan ID
-                if (data.idPasangan) {
-                    const pasangan = dataFull.keluarga.find(o => String(o.id) === String(data.idPasangan));
-                    const inCariPasangan = document.getElementById('inputCariPasangan');
-                    if (pasangan && inCariPasangan) inCariPasangan.value = pasangan.nama;
-                }
-
-                // Tampilkan Foto
-                if (data.foto && data.foto.startsWith('data:image')) {
-                    const pImg = document.getElementById('previewImage');
-                    const dIcon = document.getElementById('defaultIcon');
-                    if(pImg && dIcon) {
-                        pImg.src = data.foto;
-                        pImg.classList.remove('hidden');
-                        dIcon.classList.add('hidden');
-                    }
-                }
-
-                // Ganti judul halaman
-                const h1 = document.querySelector('.header-curve h1');
-                if(h1) h1.innerText = "Edit Anggota";
-            }
+        // 3. Fungsi Kapitalisasi Otomatis (RT/RW/Romawi)
+        function buatKapital(str) {
+            let hasil = str.replace(/\b\w/g, char => char.toUpperCase());
+            const singkatanWajib = ["Rt", "Rw", "Diy", "Ii", "Iii", "Iv", "Vi", "Vii", "Viii", "Ix", "Xi", "Xii"];
+            singkatanWajib.forEach(kata => {
+                const regex = new RegExp("\\b" + kata + "\\b", "gi");
+                hasil = hasil.replace(regex, kata.toUpperCase());
+            });
+            return hasil;
         }
 
-        // 4. JALANKAN SAAT HALAMAN DIBUKA
+        // 4. Inisialisasi saat Halaman Siap
         document.addEventListener('DOMContentLoaded', () => {
-            if (idAnggotaUrl) {
-                muatDataUntukEdit(idAnggotaUrl);
-            }
+            cekModeEdit();
 
-            // Fitur Kapitalisasi Otomatis
-            const inNama = document.getElementById('namaLengkap');
-            const inAlamat = document.getElementById('domisili');
-            [inNama, inAlamat].forEach(input => {
+            // Pasang Listener Kapitalisasi
+            const inputNama = document.getElementById('namaLengkap');
+            const inputAlamat = document.getElementById('domisili');
+
+            [inputNama, inputAlamat].forEach(input => {
                 if (input) {
                     input.addEventListener('input', function() {
                         const start = this.selectionStart;
@@ -98,54 +324,41 @@
             });
         });
 
-        // 5. Fungsi Kapitalisasi
-        function buatKapital(str) {
-            if (!str) return "";
-            let hasil = str.replace(/\b\w/g, char => char.toUpperCase());
-            const singkatan = ["Rt", "Rw", "Diy", "Ii", "Iii", "Iv", "Vi", "Vii", "Viii", "Ix", "Xi", "Xii"];
-            singkatan.forEach(k => {
-                const reg = new RegExp("\\b" + k + "\\b", "gi");
-                hasil = hasil.replace(reg, k.toUpperCase());
-            });
-            return hasil;
-        }
+        // 5. Tombol Kembali
+        document.getElementById('btnBack').addEventListener('click', () => {
+            if (idAnggotaUrl) {
+                window.location.href = 'cari-anggota.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
 
-        // 6. Tombol Kembali
-        const btnB = document.getElementById('btnBack');
-        if (btnB) {
-            btnB.addEventListener('click', () => {
-                window.location.href = idAnggotaUrl ? 'cari-anggota.html' : 'index.html';
-            });
-        }
-
-        // 7. Logika Upload Foto
-        const fAnggota = document.getElementById('fotoAnggota');
-        if (fAnggota) {
-            fAnggota.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            let w = 300; let h = (img.height / img.width) * w;
-                            canvas.width = w; canvas.height = h;
-                            ctx.drawImage(img, 0, 0, w, h);
-                            const b64 = canvas.toDataURL('image/jpeg', 0.7);
-                            const pImg = document.getElementById('previewImage');
-                            const dIcon = document.getElementById('defaultIcon');
-                            if(pImg && dIcon) {
-                                pImg.src = b64;
-                                pImg.classList.remove('hidden');
-                                dIcon.classList.add('hidden');
-                            }
-                        };
-                        img.src = event.target.result;
+        // 6. Logika Upload Foto (Kompresi)
+        document.getElementById('fotoAnggota').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = 300; 
+                        let height = (img.height / img.width) * width;
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        document.getElementById('previewImage').src = dataUrl;
+                        document.getElementById('previewImage').classList.remove('hidden');
+                        document.getElementById('defaultIcon').classList.add('hidden');
                     };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
+</body>
+</html>
