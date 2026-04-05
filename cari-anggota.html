@@ -94,11 +94,13 @@
 
      
     <script>
+        let dataSiap = false; // Kunci pengaman agar tidak cari di data kosong
+        let timeoutPencarian = null;
+
         document.getElementById('btnBack').addEventListener('click', () => {
             window.location.href = 'index.html';
         });
         
-        // 1. Fungsi Pembantu: Ambil data dari localStorage
         function getDaftarDariStorage() {
             const dataRaw = localStorage.getItem('dataCloud');
             if (dataRaw) {
@@ -108,17 +110,20 @@
             return [];
         }
 
-        // 2. Fungsi Utama: Cek lokal dulu, kalau kosong tarik dari Cloud
         async function muatDaftarAnggota() {
             const wadahDaftar = document.getElementById('wadahDaftar');
+            const inputCari = document.getElementById('searchInput');
             let daftarKeluarga = getDaftarDariStorage();
 
-            // Jika data benar-benar kosong di memori HP
+            // Kunci input dulu agar user tidak cari saat data sedang loading
+            inputCari.disabled = true;
+            inputCari.placeholder = "Menyiapkan data...";
+
             if (daftarKeluarga.length === 0) {
                 wadahDaftar.innerHTML = `
                     <div class="text-center mt-12 px-6">
                         <p class="text-cyan-500 font-bold animate-bounce text-sm">
-                           <i class="fas fa-cloud-download-alt mr-2"></i> Menghabsen anggota...
+                           <i class="fas fa-cloud-download-alt mr-2"></i> Mengabsen Anggota...
                         </p>
                     </div>`;
                 
@@ -126,37 +131,29 @@
                 daftarKeluarga = getDaftarDariStorage();
             }
 
+            dataSiap = true; // Data sekarang sudah siap di memori HP
+            inputCari.disabled = false;
+            inputCari.placeholder = "Cari nama anggota keluarga...";
             renderData(daftarKeluarga);
         }
 
-        // 3. Fungsi Sinkronisasi (Darurat jika localStorage kosong)
         async function sinkronisasiDataCloud() {
             try {
-                console.log("Mencoba tarik data dari Cloud...");
                 const response = await fetch(URL_API + "?t=" + Date.now());
                 const resJson = await response.json();
-                
                 if (resJson && resJson.keluarga) {
                     localStorage.setItem('dataCloud', JSON.stringify(resJson));
-                    console.log("Sinkronisasi berhasil!");
                 }
             } catch (err) {
                 console.error("Gagal sinkronisasi:", err);
             }
         }
 
-        // 4. Fungsi Render: Tampilkan Kartu
         function renderData(data, isSearching = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
             
             if (!data || (data.length === 0 && !isSearching)) {
-                wadahDaftar.innerHTML = `
-                    <div class="text-center mt-12 px-6">
-                        <div class="bg-red-50 p-6 rounded-2xl border-2 border-dashed border-red-200">
-                            <p class="text-gray-500 italic">Data tidak ditemukan atau koneksi internet bermasalah.</p>
-                            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Coba Lagi</button>
-                        </div>
-                    </div>`;
+                wadahDaftar.innerHTML = `<div class="text-center mt-12 px-6"><p class="text-gray-500">Data belum tersedia.</p></div>`;
                 return;
             }
 
@@ -168,28 +165,19 @@
                 return;
             }
 
-            // Urutkan Nama A-Z
             const dataTerurut = [...data].sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
-
-            // Gunakan Map + Join agar render di HP jauh lebih ringan dan cepat
             const htmlKartu = dataTerurut.map(anggota => {
                 let sumberFoto = anggota.foto;
-                if (!sumberFoto || sumberFoto === "null" || sumberFoto === "" || sumberFoto.length < 20) {
+                if (!sumberFoto || sumberFoto === "null" || sumberFoto.length < 20) {
                     sumberFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(anggota.nama)}&background=00e5ff&color=fff`;
                 }
-
-                let infoLahir = (anggota.tempatLahir || anggota.tanggalLahir) 
-                    ? `${anggota.tempatLahir || ''}, ${anggota.tanggalLahir || ''}`
-                    : "Data kelahiran belum diisi";
-
                 return `
-                    <div class="member-card shadow-sm cursor-pointer hover:bg-gray-50 flex items-center p-4 bg-white mb-3 rounded-2xl border border-gray-100" 
+                    <div class="member-card shadow-sm flex items-center p-4 bg-white mb-3 rounded-2xl border border-gray-100" 
                         onclick="window.location.href='tambah-anggota.html?id=${anggota.id}'">
-                        <img src="${sumberFoto}" class="w-14 h-14 rounded-full object-cover border-2 border-[#00e5ff] shadow-sm mr-4">
+                        <img src="${sumberFoto}" class="w-14 h-14 rounded-full object-cover border-2 border-[#00e5ff] mr-4">
                         <div class="flex-1">
                             <h4 class="font-bold text-gray-800 text-md leading-tight">${anggota.nama}</h4>
-                            <p class="text-[10px] text-[#00e5ff] font-semibold mt-0.5 uppercase tracking-wide">${infoLahir}</p>
-                            <p class="text-xs text-gray-400 mt-1 italic leading-tight">📍 ${anggota.domisili || 'Lokasi tidak diisi'}</p>
+                            <p class="text-xs text-gray-400 mt-1 italic">📍 ${anggota.domisili || 'Lokasi tidak diisi'}</p>
                         </div>
                         <div class="text-gray-300 ml-2">❯</div>
                     </div>`;
@@ -198,14 +186,13 @@
             wadahDaftar.innerHTML = htmlKartu; 
         }
 
-        // 5. Fitur Cari
-        let timeoutPencarian = null;
         function filterAnggota() {
+            if (!dataSiap) return; // JANGAN cari kalau data belum siap di memori
+
             const inputElemen = document.getElementById('searchInput');
-            const statusElemen = document.getElementById('statusPencarian'); // Pastikan ID ini ada di HTML
+            const statusElemen = document.getElementById('statusPencarian');
             const input = inputElemen.value.toLowerCase().trim();
             
-            // Tampilkan status jika elemennya ada
             if (input.length > 0) {
                 if (statusElemen) statusElemen.classList.remove('hidden');
             } else {
@@ -214,30 +201,23 @@
                 return;
             }
 
+            // Tunggu user selesai mengetik (jeda 500ms)
             clearTimeout(timeoutPencarian);
-
             timeoutPencarian = setTimeout(() => {
                 const daftarKeluarga = getDaftarDariStorage();
-                
                 const hasilFilter = daftarKeluarga.filter(anggota => {
                     const nama = (anggota.nama || "").toLowerCase();
                     const domisili = (anggota.domisili || "").toLowerCase();
-                    // Mencari di nama ATAU domisili
                     return nama.includes(input) || domisili.includes(input);
                 });
 
                 if (statusElemen) statusElemen.classList.add('hidden');
                 renderData(hasilFilter, true);
-            }, 400); // 400ms cukup untuk memberi waktu user mengetik di HP
+            }, 500); 
         }
 
-        // Tambahkan ini di bagian bawah script agar lebih peka di HP
         document.getElementById('searchInput').addEventListener('input', filterAnggota);
-
-        // Jalankan saat dokumen siap
-        document.addEventListener('DOMContentLoaded', () => {
-            muatDaftarAnggota();
-        });
+        document.addEventListener('DOMContentLoaded', muatDaftarAnggota);
     </script>
 </body>
 </html>
