@@ -88,73 +88,51 @@
         </div>
 
     <script src="config.js"></script> <script>
-        // 1. Fungsi Pembantu: Ambil data dari localStorage
+        // 1. Ambil data dari localStorage
         function getDaftarDariStorage() {
             const dataRaw = localStorage.getItem('dataCloud');
             if (dataRaw) {
-                const parsed = JSON.parse(dataRaw);
-                return parsed.keluarga || []; 
+                try {
+                    const parsed = JSON.parse(dataRaw);
+                    return parsed.keluarga || [];
+                } catch (e) { return []; }
             }
             return [];
         }
 
-        // 2. Fungsi Utama: Cek lokal dulu, kalau kosong tarik dari Cloud
-        async function muatDaftarAnggota() {
-            const wadahDaftar = document.getElementById('wadahDaftar');
-            let daftarKeluarga = getDaftarDariStorage();
-
-            // JIKA DATA KOSONG (setelah clear cache)
-            if (daftarKeluarga.length === 0) {
-                wadahDaftar.innerHTML = `
-                    <div class="text-center mt-12 px-6">
-                        <p class="text-gray-400 animate-pulse">Sedang sinkronisasi data keluarga...</p>
-                    </div>`;
-                
-                // Panggil fungsi tarik data dari internet
-                await sinkronisasiDataCloud();
-                daftarKeluarga = getDaftarDariStorage(); // Ambil lagi setelah download selesai
-            }
-
-            renderData(daftarKeluarga);
-        }
-
-        // 3. Fungsi Sinkronisasi (Darurat jika localStorage kosong)
-        async function sinkronisasiDataCloud() {
-            try {
-                console.log("Mencoba tarik data dari Cloud...");
-                const response = await fetch(URL_API + "?t=" + Date.now());
-                const resJson = await response.json();
-                
-                if (resJson && resJson.keluarga) {
-                    localStorage.setItem('dataCloud', JSON.stringify(resJson));
-                    console.log("Sinkronisasi berhasil!");
-                }
-            } catch (err) {
-                console.error("Gagal sinkronisasi:", err);
-            }
-        }
-
-        // 4. Fungsi Render: Tampilkan Kartu
-        function renderData(data) {
+        // 2. Fungsi Render: Tampilkan Kartu
+        // Saya tambah parameter 'sedangCari' supaya bisa bedakan pesan error
+        function renderData(data, sedangCari = false) {
             const wadahDaftar = document.getElementById('wadahDaftar');
             
+            // JIKA DATA TIDAK ADA
             if (!data || data.length === 0) {
-                wadahDaftar.innerHTML = `
-                    <div class="text-center mt-12 px-6">
-                        <div class="bg-red-50 p-6 rounded-2xl border-2 border-dashed border-red-200">
-                            <p class="text-gray-500 italic">Data tidak ditemukan atau koneksi internet bermasalah.</p>
-                            <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Coba Lagi</button>
-                        </div>
-                    </div>`;
+                if (sedangCari) {
+                    // Jika user lagi ngetik tapi nggak ketemu
+                    wadahDaftar.innerHTML = `
+                        <div class="text-center mt-12 px-6">
+                            <p class="text-gray-400 italic">Nama "${document.getElementById('searchInput').value}" tidak ditemukan...</p>
+                        </div>`;
+                } else {
+                    // Jika baru buka halaman tapi data memang kosong (masalah koneksi/sinkron)
+                    wadahDaftar.innerHTML = `
+                        <div class="text-center mt-12 px-6">
+                            <div class="bg-red-50 p-6 rounded-2xl border-2 border-dashed border-red-200">
+                                <p class="text-gray-500 italic">Data keluarga belum sinkron.</p>
+                                <button onclick="location.reload()" class="bg-red-500 text-white px-4 py-2 rounded-xl mt-3 text-sm">Sinkron Sekarang</button>
+                            </div>
+                        </div>`;
+                }
                 return;
             }
 
+            // JIKA DATA ADA, TAMPILKAN KARTU
             wadahDaftar.innerHTML = ''; 
-            const dataTerurut = [...data].sort((a, b) => a.nama.localeCompare(b.nama));
+            const dataTerurut = [...data].sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
 
             dataTerurut.forEach(anggota => {
                 let sumberFoto = anggota.foto;
-                if (!sumberFoto || sumberFoto === "null" || sumberFoto === "" || sumberFoto.includes('127.0.0.1')) {
+                if (!sumberFoto || sumberFoto === "null" || sumberFoto === "" || sumberFoto.length < 20) {
                     sumberFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(anggota.nama)}&background=00e5ff&color=fff`;
                 }
 
@@ -176,17 +154,45 @@
             });
         }
 
-        // 5. Fitur Cari
+        // 3. Fitur Cari (Sudah diperbaiki logikanya)
         function filterAnggota() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
+            const input = document.getElementById('searchInput').value.toLowerCase().trim();
             const dataLengkap = getDaftarDariStorage();
             
-            const hasilFilter = dataLengkap.filter(anggota => 
-                anggota.nama.toLowerCase().includes(input) || 
-                (anggota.domisili && anggota.domisili.toLowerCase().includes(input))
-            );
+            // Kalau kotak pencarian kosong, tampilkan semua data aslinya
+            if (input === "") {
+                renderData(dataLengkap, false);
+                return;
+            }
 
-            renderData(hasilFilter);
+            // Filter data berdasarkan Nama atau Domisili
+            const hasilFilter = dataLengkap.filter(anggota => {
+                const namaAman = (anggota.nama || "").toLowerCase();
+                const domisiliAman = (anggota.domisili || "").toLowerCase();
+                return namaAman.includes(input) || domisiliAman.includes(input);
+            });
+
+            // Jalankan render dengan status 'sedangCari = true'
+            renderData(hasilFilter, true);
+        }
+
+        async function muatDaftarAnggota() {
+            let daftar = getDaftarDariStorage();
+            if (daftar.length === 0) {
+                await sinkronisasiDataCloud();
+                daftar = getDaftarDariStorage();
+            }
+            renderData(daftar, false);
+        }
+
+        async function sinkronisasiDataCloud() {
+            try {
+                const response = await fetch(URL_API + "?t=" + Date.now());
+                const resJson = await response.json();
+                if (resJson && resJson.keluarga) {
+                    localStorage.setItem('dataCloud', JSON.stringify(resJson));
+                }
+            } catch (err) { console.error(err); }
         }
 
         // Jalankan saat halaman dibuka
