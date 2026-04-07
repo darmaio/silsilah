@@ -331,133 +331,119 @@
         let swiperInstance;
 
         // --- 2. INITIAL LOAD ---
-        window.addEventListener('DOMContentLoaded', () => { // Gunakan DOMContentLoaded agar lebih cepat
-            // 1. Cek identitas
+        window.addEventListener('load', () => {
+            // Cek apakah user perlu login
             cekIdentitas();
+
+            // Tampilkan sapaan di Dashboard
             tampilkanSapaan(); 
 
-            // 2. LANGSUNG TAMPILKAN DATA DARI HP (Anti 0)
-            if (localStorage.getItem('dataCloud')) {
-                perbaruiDashboardLokal(); 
-            }
-
-            // 3. Jalankan download cloud di latar belakang
+            // Update data jika sudah login
             if (localStorage.getItem('userNama')) {
-                perbaruiDashboardCloud().then(() => {
-                    // Setelah download selesai, refresh angka di layar sekali lagi
-                    perbaruiDashboardLokal();
-                });
+                document.body.style.overflow = 'auto';
+                perbaruiDashboardLokal();
+                perbaruiDashboardCloud();
             }
+            
+            // Atur scroll body
+            document.body.style.overflowY = (document.body.scrollHeight <= window.innerHeight) ? 'hidden' : 'auto';
         });
 
         // --- 3. LOGIKA IDENTITAS & AUTOCOMPLETE ---
 
         function cekIdentitas() {
             const namaSaved = localStorage.getItem('userNama');
-            const dataLokal = localStorage.getItem('dataCloud');
-
             if (!namaSaved) {
-                // HANYA panggil jika dataCloud memang belum ada (habis clear cache)
-                if (!dataLokal) {
-                    perbaruiDashboardCloud(); 
-                } else {
-                    // Jika data sudah ada, langsung aktifkan input tanpa nunggu download
-                    aktifkanInputNama(); 
-                }
-
+                perbaruiDashboardCloud();
                 const modal = document.getElementById('modalLogin');
+                const input = document.getElementById('inputNamaUser');
+                
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                     document.body.style.overflow = 'hidden';
+                    
+                    setTimeout(() => { 
+                        if (input) {
+                            input.focus();
+                            input.click(); 
+                        }
+                    }, 500);
+
+                    // Aktifkan fitur saran nama saat mengetik
                     aktifkanAutocompleteNama();
                 }
             }
         }
 
-        function aktifkanInputNama() {
-            const input = document.getElementById('inputNamaUser');
-            if (input && input.disabled) {
-                input.disabled = false;
-                input.placeholder = "Ketik nama lengkap Om/Tante...";
-                input.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
-                input.classList.add('bg-gray-50', 'text-gray-700');
-                input.focus();
-            }
-        }
-
         function aktifkanAutocompleteNama() {
             const input = document.getElementById('inputNamaUser');
-            const listSaran = document.getElementById('listSaranNama');
-            const statusSaran = document.getElementById('statusSaran');
-            const kontenSaran = document.getElementById('kontenSaran');
+            const listSaran = document.getElementById('listSaranNama'); 
+            const containerAvatar = document.getElementById('containerAvatar'); 
 
             if (!input || !listSaran) return;
 
+            // Gunakan event 'input' agar terpantau SETIAP KETIKAN
             input.addEventListener('input', function() {
                 const teks = this.value.trim().toLowerCase();
-                kontenSaran.innerHTML = '';
+                listSaran.innerHTML = '';
                 
+                // Minimal 2 huruf baru muncul saran
                 if (teks.length < 2) {
                     listSaran.classList.add('hidden');
+                    resetAvatarIcon();
                     return;
                 }
 
-                listSaran.classList.remove('hidden');
                 const dataLokalRaw = localStorage.getItem('dataCloud');
+                if (!dataLokalRaw) return;
 
-                // JIKA DATA BELUM ADA
-                if (!dataLokalRaw) {
-                    statusSaran.innerHTML = `<i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menghubungkan ke server...`;
-                    statusSaran.classList.remove('hidden');
-                    
-                    // Panggil sinkronisasi, tapi beri penanganan jika gagal
-                    perbaruiDashboardCloud().then(() => {
-                        const checkData = localStorage.getItem('dataCloud');
-                        if (checkData) {
-                            input.dispatchEvent(new Event('input')); // Ulangi pencarian jika sukses
-                        } else {
-                            statusSaran.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Memeriksa daftar nama...`;
-                        }
-                    }).catch(() => {
-                        statusSaran.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Masalah koneksi.`;
-                    });
-                    return;
+                try {
+                    const dataLokal = JSON.parse(dataLokalRaw);
+                    // Filter nama yang mengandung teks ketikan user
+                    const matches = dataLokal.keluarga.filter(p => 
+                        p.nama && p.nama.toLowerCase().includes(teks)
+                    ).slice(0, 5); // Ambil 5 teratas saja
+
+                    if (matches.length > 0) {
+                        matches.forEach(p => {
+                            const item = document.createElement('div');
+                            item.className = "p-4 border-b border-gray-50 hover:bg-cyan-50 active:bg-cyan-100 cursor-pointer flex items-center gap-3 text-left transition-colors";
+                            
+                            // Logika foto: Jika tidak ada, pakai UI-Avatars
+                            const imgUrl = (p.foto && p.foto.length > 20) ? p.foto : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.nama)}&background=00e5ff&color=fff`;
+                            
+                            item.innerHTML = `
+                                <img src="${imgUrl}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-100">
+                                <div>
+                                    <div class="font-bold text-gray-800 text-sm">${p.nama}</div>
+                                    <div class="text-[9px] text-gray-400 uppercase tracking-widest">${p.status || 'Anggota'}</div>
+                                </div>
+                            `;
+                            
+                            // Saat saran di-klik
+                            item.onclick = () => {
+                                input.value = p.nama;
+                                listSaran.classList.add('hidden');
+                                // Ganti foto di lingkaran modal secara real-time
+                                if (containerAvatar) {
+                                    containerAvatar.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border-2 border-white shadow-md">`;
+                                }
+                            };
+                            listSaran.appendChild(item);
+                        });
+                        listSaran.classList.remove('hidden');
+                    } else {
+                        listSaran.classList.add('hidden');
+                    }
+                } catch (e) {
+                    console.error("Gagal parsing dataCloud untuk autocomplete", e);
                 }
+            });
 
-                // JIKA DATA ADA, PROSES FILTER SEPERTI BIASA
-                const dataLokal = JSON.parse(dataLokalRaw);
-                const matches = dataLokal.keluarga.filter(p => 
-                    p.nama && p.nama.toLowerCase().includes(teks)
-                ).slice(0, 5);
-
-                if (matches.length > 0) {
-                    statusSaran.classList.add('hidden');
-                    matches.forEach(p => {
-                        const item = document.createElement('div');
-                        item.className = "p-4 border-b border-gray-50 hover:bg-cyan-50 cursor-pointer flex items-center gap-3 text-left";
-                        
-                        const imgUrl = (p.foto && p.foto.length > 20) ? p.foto : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.nama)}&background=00e5ff&color=fff`;
-                        
-                        item.innerHTML = `
-                            <img src="${imgUrl}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-100">
-                            <div class="font-bold text-gray-800 text-sm">${p.nama}</div>
-                        `;
-                        
-                        item.onclick = () => {
-                            input.value = p.nama;
-                            listSaran.classList.add('hidden');
-                            const containerAvatar = document.getElementById('containerAvatar');
-                            if (containerAvatar) {
-                                containerAvatar.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border-2 border-white shadow-md">`;
-                            }
-                        };
-                        kontenSaran.appendChild(item);
-                    });
-                } else {
-                    statusSaran.innerHTML = `<i class="fas fa-search text-gray-300 mr-2"></i> Nama tidak ditemukan`;
-                    statusSaran.classList.remove('hidden');
-                }
+            // Tambahan: Tutup saran jika user klik di luar input
+            document.addEventListener('click', (e) => {
+                if (e.target !== input) listSaran.classList.add('hidden');
             });
         }
 
@@ -472,34 +458,36 @@
             const input = document.getElementById('inputNamaUser');
             if (!input) return;
             
+            input.blur();
             let namaRaw = input.value.trim();
+            
             if (namaRaw.length < 3) {
-                alert("Masukkan nama yang lengkap ya Om!");
+                alert("Nama diisi yang lengkap ya, minimal 3 huruf!");
                 return;
             }
 
-            // Ambil foto yang tadi sudah "nempel" di input saat pilih saran
-            let fotoUser = input.dataset.selectedFoto;
+            const nama = namaRaw.replace(/\b\w/g, l => l.toUpperCase());
+            const dataLokalRaw = localStorage.getItem('dataCloud');
+            let fotoUser = "";
 
-            // Jika foto belum ada (user ketik manual tanpa klik saran), cari lagi di data
-            if (!fotoUser) {
-                const dataLokalRaw = localStorage.getItem('dataCloud');
-                if (dataLokalRaw) {
-                    const dataLokal = JSON.parse(dataLokalRaw);
-                    const orang = dataLokal.keluarga.find(o => o.nama.toLowerCase() === namaRaw.toLowerCase());
-                    if (orang && orang.foto) fotoUser = orang.foto;
-                }
+            if (dataLokalRaw) {
+                const dataLokal = JSON.parse(dataLokalRaw);
+                const dataOrang = dataLokal.keluarga.find(o => o.nama.toLowerCase() === nama.toLowerCase());
+                if (dataOrang && dataOrang.foto) fotoUser = dataOrang.foto;
             }
 
-            // Fallback terakhir: pakai Inisial
             if (!fotoUser) {
-                fotoUser = `https://ui-avatars.com/api/?name=${encodeURIComponent(namaRaw)}&background=00e5ff&color=fff`;
+                fotoUser = `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=00e5ff&color=fff`;
             }
 
-            localStorage.setItem('userNama', namaRaw);
+            localStorage.setItem('userNama', nama);
             localStorage.setItem('userFoto', fotoUser);
+
+            const modal = document.getElementById('modalLogin');
+            if (modal) modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
             
-            location.reload(); // Refresh untuk masuk ke dashboard
+            location.reload();
         }
 
         // --- 4. DASHBOARD & UI HELPERS ---
@@ -537,74 +525,35 @@
             const elJumlah = document.getElementById('angkaJumlah');
             const elGen = document.getElementById('angkaTotalGenerasi');
             const containerIklan = document.getElementById('containerIklanCloud');
-            
-            // Ambil data terbaru dari storage
             const dataLokalRaw = localStorage.getItem('dataCloud');
             
             if (dataLokalRaw) {
-                try {
-                    const dataLokal = JSON.parse(dataLokalRaw);
-                    const keluarga = dataLokal.keluarga || [];
-                    
-                    // Hitung Anggota (Hidup/Wafat)
-                    const stats = hitungStatusSederhana(keluarga);
-                    if (elJumlah) elJumlah.innerText = stats.total;
-                    if (document.getElementById('jumlahHidup')) document.getElementById('jumlahHidup').innerText = stats.hidup;
-                    if (document.getElementById('jumlahWafat')) document.getElementById('jumlahWafat').innerText = stats.wafat;
-                    
-                    // Update Generasi
-                    if (elGen) updateAngkaGenerasi(keluarga, elGen);
-                    
-                    // Render Iklan
-                    if (containerIklan) renderIklan(dataLokal.iklan || [], containerIklan);
-                    
-                    console.log("Dashboard berhasil diupdate dengan " + keluarga.length + " anggota.");
-                } catch (e) {
-                    console.error("Gagal memproses data dashboard:", e);
-                }
-            } else {
-                console.warn("Data Cloud tidak ditemukan di localStorage. Mencoba tarik ulang...");
-                perbaruiDashboardCloud(); // Tarik paksa jika kosong
+                const dataLokal = JSON.parse(dataLokalRaw);
+                const stats = hitungStatusSederhana(dataLokal.keluarga);
+                
+                if (elJumlah) elJumlah.innerText = stats.total;
+                if (document.getElementById('jumlahHidup')) document.getElementById('jumlahHidup').innerText = stats.hidup;
+                if (document.getElementById('jumlahWafat')) document.getElementById('jumlahWafat').innerText = stats.wafat;
+                if (elGen) updateAngkaGenerasi(dataLokal.keluarga, elGen);
+                if (containerIklan) renderIklan(dataLokal.iklan || [], containerIklan);
             }
         }
 
-        let sedangSinkron = false;
         async function perbaruiDashboardCloud() {
-            if (sedangSinkron) return; 
-            sedangSinkron = true;
-            
-            const input = document.getElementById('inputNamaUser');
-            
+            if (!localStorage.getItem('userNama')) return; 
             try {
-                // Gunakan cache: 'no-cache' agar HP tidak mengambil data jadul
-                const response = await fetch(URL_API + "?t=" + Date.now(), {
-                    cache: 'no-cache'
-                });
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const resJson = await response.json();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                const response = await fetch(URL_API + "?t=" + Date.now(), { signal: controller.signal });
+                clearTimeout(timeoutId);
 
+                const resJson = await response.json();
                 if (resJson && resJson.keluarga) {
                     localStorage.setItem('dataCloud', JSON.stringify(resJson));
-                    
-                    if (input) {
-                        input.disabled = false;
-                        input.placeholder = "Contoh: Muntari";
-                        input.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
-                        input.classList.add('bg-gray-50', 'text-gray-700');
-                    }
-                    console.log("Data berhasil diperbarui dari Cloud");
-                    
-                    // PAKSA update dashboard setelah data masuk
                     perbaruiDashboardLokal();
+                    try { cekNotifikasiBaru(resJson); } catch (e) {}
                 }
-            } catch (err) {
-                console.error("Gagal sinkronisasi di HP:", err);
-                if (input) input.placeholder = "Gagal memuat daftar nama...";
-            } finally {
-                sedangSinkron = false; 
-            }
+            } catch (err) { console.warn("Koneksi lambat/offline"); }
         }
 
         function hitungStatusSederhana(data) {
@@ -683,19 +632,15 @@
             </div>
 
             <h3 class="text-xl font-black text-gray-800 mb-2">Selamat Datang!</h3>
-            <p class="text-sm text-gray-500 mb-6">Silakan masukkan nama.</p>
+            <p class="text-sm text-gray-500 mb-6">Silakan masukkan nama lengkap.</p>
             
-            <div class="relative"> <input type="text" id="inputNamaUser" autofocus disabled
+            <div class="relative"> <input type="text" id="inputNamaUser" autofocus
                     class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-4 px-6 text-center font-bold text-gray-700 focus:outline-none focus:border-[#00e5ff] transition-all mb-4 capitalize" 
                     placeholder="Contoh: Muntari"
                     autocomplete="off">
                 
                 <div id="listSaranNama" class="absolute left-0 right-0 top-[100%] bg-white border border-gray-100 rounded-2xl shadow-xl z-50 max-h-48 overflow-y-auto hidden">
-                    <div id="statusSaran" class="p-4 text-center text-sm text-gray-500">
-                        <i class="fas fa-spinner fa-spin text-cyan-500 mr-2"></i> Menyiapkan daftar nama...
                     </div>
-                    <div id="kontenSaran"></div>
-                </div>
             </div>
             
             <button onclick="simpanIdentitas()" class="w-full mt-4 bg-[#00e5ff] text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
